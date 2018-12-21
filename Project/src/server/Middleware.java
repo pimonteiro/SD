@@ -1,8 +1,6 @@
 package server;
 
-import common.User;
-import common.UsernameTakenException;
-import common.WrongPasswordException;
+import common.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -16,7 +14,9 @@ public class Middleware {
     private Map<Integer,Container> containers;
     private Map<String,User> users;
     private Map<Integer,Auction> auctions;
+    private int na;
     private Map<Integer,Reservation> reservations;
+    private int nr;
     private Lock userLock;
     private Lock auctionLock;
 
@@ -26,6 +26,8 @@ public class Middleware {
         this.auctions = new HashMap<>();
         this.userLock = new ReentrantLock();
         this.auctionLock = new ReentrantLock();
+        this.na = 0;
+        this.nr = 0;
     }
 
     public void signUp(String username, String email, String password) throws UsernameTakenException {
@@ -52,23 +54,33 @@ public class Middleware {
         }
         return user;
     }
-    public int startAuction(Container container, String type){
-        int id;
+    public int startAuction(Container container, String type) throws ContainerNotAvailableException{
+        int id=-1;
         auctionLock.lock();
         try {
-            id = this.auctions.size() + 1;
-            Auction auction = new Auction(id, container);
-            this.auctions.put(id,auction);
+            Auction a=null;
+            List<Container> containerList = new ArrayList<>(containers.values());
+            for (Container c : containerList) {
+                if (c.getType().equals(type) && c.getUser() == null) {
+                    container = c;
+                    this.na++;
+                    id = this.nr;
+                    a = new Auction(id, container);
+                    auctions.put(id, a);
+                }
+            }
+            if(a==null) throw new ContainerNotAvailableException("There are no containers available for auction");
         }
         finally {
             auctionLock.unlock();
         }
         return id;
     }
-    public Bid closeAuction(int id) {
+    public Bid closeAuction(int id) throws IDNotFoundException{
         Auction auction;
         auctionLock.lock();
         try {
+            if(!auctions.containsKey(id)) throw new IDNotFoundException("The auction id you inserted does not exist");
             auction = auctions.get(id);
             auctions.remove(id);
         } finally {
@@ -78,27 +90,39 @@ public class Middleware {
         return auction.closeAuction();
     }
     
-    public void startReservation(User user, String type, float time){
+    public void startReservation(User user, String type, float time) throws ContainerNotAvailableException{
         Container container;
         userLock.lock();
-        List<Container> containerList = new ArrayList<>(containers.values());
-        for (Container c: containerList) {
-            if(c.getType().equals(type) && c.getUser()==null){
-                container = c;
-                container.alocateContainner(user,time);
-                int id = this.reservations.size()+1;
-                Reservation r = new Reservation(id,user,container);
-                reservations.put(reservations.size()+1,r);
+        try {
+            Reservation r=null;
+            List<Container> containerList = new ArrayList<>(containers.values());
+            for (Container c : containerList) {
+                if (c.getType().equals(type) && c.getUser() == null) {
+                    container = c;
+                    container.alocateContainner(user, time);
+                    this.nr++;
+                    int id = this.nr;
+                    r = new Reservation(id, user, container);
+                    reservations.put(id, r);
+                }
             }
+            if(r==null) throw new ContainerNotAvailableException("There are no containers available for reservation");
         }
-        userLock.unlock();
+        finally {
+            userLock.unlock();
+        }
     }
 
-    public void closeReservation(int id){
+    public void closeReservation(int id) throws IDNotFoundException {
         userLock.lock();
-        Reservation r = reservations.get(id);
-        r.getContainer().setUser(null);
-        reservations.remove(id);
-        userLock.unlock();
+        try {
+            if(!reservations.containsKey(id)) throw new IDNotFoundException("The reservation id you inserted does not exist");
+            Reservation r = reservations.get(id);
+            r.getContainer().setUser(null);
+            reservations.remove(id);
+        }
+        finally {
+            userLock.unlock();
+        }
     }
 }
