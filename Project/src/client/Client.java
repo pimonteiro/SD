@@ -31,16 +31,24 @@ public class Client {
                 cc.menuScreen();
                 c_input = sn.next().toLowerCase();
 
-
-
+                if(c_input.equals("myaccount")){
+                    cc.checkMyAccount(in, out);
+                }
+                if(c_input.equals("myservers")){
+                    cc.checkMyServers(in, out);
+                }
+                if(c_input.equals("reserve")){
+                    cc.reserverServer(in, out);
+                }
+                if(c_input.equals("cancel")){
+                    cc.cancelServer(in, out);
+                }
+                if(c_input.equals("auction")){
+                    // Have no idea
+                }
 
 
             } while(c_input != "quit"); //quando fizer logout faço: c_input = "quit"; para conseguir sair do ciclo
-
-
-
-
-
 
             s.shutdownInput();
             s.shutdownOutput();
