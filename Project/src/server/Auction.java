@@ -6,7 +6,6 @@ import common.User;
 public class Auction {
     private final int id;
     private Container container;
-    private User currentWinner;
     private float price;
     private Bid best;
 
@@ -14,7 +13,6 @@ public class Auction {
         this.id = id;
         this.container = container;
         this.price = 0;
-        currentWinner = null;
         this.best = new Bid(null,0);
     }
 

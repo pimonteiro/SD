@@ -1,26 +1,20 @@
 package common;
 
-import server.Container;
-
-import java.util.ArrayList;
-import java.util.List;
-
 public class User {
-    private String id;
+    private final String id;
+    private String name;
     private String email;
     private String password;
-    private List<Container> history;
+    // private List<Container> history;
     private float debt;
 
-    public User() {
 
-    }
-
-    public User(int id, String email, String password) {
+    public User(int id, String name, String email, String password) {
         this.id = String.valueOf(id+1);
+        this.name = name;
         this.email = email;
         this.password = password;
-        this.history = new ArrayList<>();
+        //this.history = new ArrayList<>();
         this.debt=0;
     }
 
@@ -30,6 +24,10 @@ public class User {
 
     public void setDebt(float debt) {
         this.debt = debt;
+    }
+
+    public String getName(){
+        return this.name;
     }
 
     public String getEmail() {

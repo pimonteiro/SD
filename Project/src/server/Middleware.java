@@ -16,7 +16,7 @@ public class Middleware {
     private Map<Integer,Container> containers;
     private Map<String,User> users;
     private Map<Integer,Auction> auctions;
-    private Map<Integer,Container> reservations;
+    private Map<Integer,Reservation> reservations;
     private Lock userLock;
     private Lock auctionLock;
 
@@ -28,23 +28,23 @@ public class Middleware {
         this.auctionLock = new ReentrantLock();
     }
 
-    public void signUp(String username, String password) throws UsernameTakenException {
+    public void signUp(String username, String email, String password) throws UsernameTakenException {
         userLock.lock();
         try {
             if (users.containsKey(username))
                 throw new UsernameTakenException("The username that you have chosen is taken");
 
-            users.put(username, new User(users.size(), username, password));
+            users.put(username, new User(users.size(), username, email, password));
         } finally {
             userLock.unlock();
         }
     }
 
-    public User login(String username, String password) throws WrongPasswordException {
+    public User login(String email, String password) throws WrongPasswordException {
         User user;
         userLock.lock();
         try {
-            user = users.get(username);
+            user = users.get(email);
             if (user == null || !user.authentication(user.getEmail(), user.getPassword()))
                 throw new WrongPasswordException("Your username or password is incorrect");
         } finally {
@@ -78,7 +78,7 @@ public class Middleware {
         return auction.closeAuction();
     }
     
-    public void reservation(User user, float time, String type){ //probably gonna need a reservation number
+    public void startReservation(User user, String type, float time){
         Container container;
         userLock.lock();
         List<Container> containerList = new ArrayList<>(containers.values());
@@ -86,10 +86,19 @@ public class Middleware {
             if(c.getType().equals(type) && c.getUser()==null){
                 container = c;
                 container.alocateContainner(user,time);
-                reservations.put(reservations.size()+1,container);
+                int id = this.reservations.size()+1;
+                Reservation r = new Reservation(id,user,container);
+                reservations.put(reservations.size()+1,r);
             }
         }
         userLock.unlock();
     }
 
+    public void closeReservation(int id){
+        userLock.lock();
+        Reservation r = reservations.get(id);
+        r.getContainer().setUser(null);
+        reservations.remove(id);
+        userLock.unlock();
+    }
 }
