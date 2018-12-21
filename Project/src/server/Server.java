@@ -9,26 +9,14 @@ import java.net.Socket;
 
 public class Server {
     public static void main(String[] args) {
-
         try {
             ServerSocket ss = new ServerSocket(1234);
-            while (true) {
-                Socket s = ss.accept();
-                BufferedReader in = new BufferedReader(new InputStreamReader(s.getInputStream()));
-
-                PrintWriter out = new PrintWriter(s.getOutputStream());
-
-                String t;
-                do {
-
-                } while(t != null);
-
-                s.shutdownInput();
-                s.shutdownOutput();
-                s.close();
+            while(true){
+                ServerThreadConnection thc = new ServerThreadConnection(ss.accept());
+                thc.start();
             }
         }
-        catch(IOException e){
+        catch(IOException e) {
             e.printStackTrace();
         }
     }
