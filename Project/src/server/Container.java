@@ -53,4 +53,17 @@ public class Container {
         this.user.setDebt(price*diff);
         this.user=null;
     }
+
+    @Override
+    public String toString(){
+        Duration duration = Duration.between(this.startDate, LocalDateTime.now());
+        long diff = Math.abs(duration.toDays());
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("ID: " + this.id + "\n");
+        sb.append("Type: " + this.type + "\n");
+        sb.append("UpTime: " + diff + "\n");
+
+        return sb.toString();
+    }
 }

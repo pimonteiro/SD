@@ -32,21 +32,24 @@ public class ServerThreadConnection extends Thread{
                 if(c_input.contains("login")){
                     sc.login(in, out);
                 }
-
-
-
+                if(c_input.contains("register")){
+                    sc.register(in, out);
+                }
                 if(c_input.equals("myaccount")){
                     sc.checkMyAccount(in, out);
                 }
                 if(c_input.equals("myservers")){
                     sc.checkMyServers(in, out);
                 }
-                if(c_input.equals("reserve")){
-                    sc.reserveServer(in, out);
-                }
-                if(c_input.equals("cancel")){
+                if(c_input.contains("cancel")){
                     sc.cancelServer(in, out);
                 }
+                if(c_input.contains("reserve")){
+                    sc.reserveServer(in, out);
+                }
+
+
+
                 if(c_input.equals("auction")){
                     // Have no idea
                 }
