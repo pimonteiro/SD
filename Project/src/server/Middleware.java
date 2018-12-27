@@ -22,8 +22,8 @@ public class Middleware {
     private Lock userLock;
     private Lock auctionLock;
 
-    public Middleware() {
-        this.containers = new HashMap<>();
+    public Middleware(Map<Integer,Container> c) {
+        this.containers = c;
         this.users = new HashMap<>();
         this.auctions = new HashMap<>();
         this.reservations = new HashMap<>();
@@ -144,17 +144,17 @@ public class Middleware {
         }
     }
 
-    public List<Integer> getUserAllocatedContainers(String id){
-        List<Integer> ret = new ArrayList<>();
+    public List<Container> getUserAllocatedContainers(String id){
+        List<Container> ret = new ArrayList<>();
         List<Reservation> r = new ArrayList<>(this.reservations.values());
         for(Reservation t: r){
             if(t.getContainer().getUser().getId().equals(id)){
-                ret.add(t.getContainer().getId());
+                ret.add(t.getContainer());
             }
         }
         for(Integer i: this.idContainner){
             if(containers.get(i).getUser().getId().equals(id)){
-                ret.add(containers.get(i).getId());
+                ret.add(containers.get(i));
             }
         }
         return ret;
