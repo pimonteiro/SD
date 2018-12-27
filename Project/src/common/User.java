@@ -18,6 +18,10 @@ public class User {
         this.debt=0;
     }
 
+    public String getId(){
+        return this.id;
+    }
+
     public float getDebt() {
         return debt;
     }

@@ -38,7 +38,7 @@ public class Client {
                     cc.checkMyServers(in, out);
                 }
                 if(c_input.equals("reserve")){
-                    cc.reserverServer(in, out);
+                    cc.reserveServer(in, out);
                 }
                 if(c_input.equals("cancel")){
                     cc.cancelServer(in, out);
@@ -48,8 +48,9 @@ public class Client {
                 }
 
 
-            } while(c_input != "quit"); //quando fizer logout faço: c_input = "quit"; para conseguir sair do ciclo
+            } while(!c_input.equals("quit")); //quando fizer logout faço: c_input = "quit"; para conseguir sair do ciclo
 
+            System.out.println("Have a great day!");
             s.shutdownInput();
             s.shutdownOutput();
             s.close();

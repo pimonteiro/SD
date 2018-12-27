@@ -11,8 +11,10 @@ public class Server {
     public static void main(String[] args) {
         try {
             ServerSocket ss = new ServerSocket(1234);
+            Middleware m = new Middleware();
+            //TODO Povoate Containers and stuff
             while(true){
-                ServerThreadConnection thc = new ServerThreadConnection(ss.accept());
+                ServerThreadConnection thc = new ServerThreadConnection(ss.accept(), m);
                 thc.start();
             }
         }

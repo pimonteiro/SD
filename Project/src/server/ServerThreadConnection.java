@@ -5,12 +5,15 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.Scanner;
 
 public class ServerThreadConnection extends Thread{
     private Socket s;
+    private Middleware m;
 
-    public ServerThreadConnection(Socket s){
+    public ServerThreadConnection(Socket s, Middleware m){
         this.s = s;
+        this.m = m;
     }
 
     @Override
@@ -20,10 +23,35 @@ public class ServerThreadConnection extends Thread{
 
             PrintWriter out = new PrintWriter(s.getOutputStream());
 
-            String t;
-            do {
+            String c_input;
+            Scanner sn = new Scanner(System.in);
+            ServerThreadController sc = new ServerThreadController(m);
 
-            } while (t != null);
+            do {
+                c_input = sn.nextLine().toLowerCase();
+                if(c_input.contains("login")){
+                    sc.login(in, out);
+                }
+
+
+
+                if(c_input.equals("myaccount")){
+                    sc.checkMyAccount(in, out);
+                }
+                if(c_input.equals("myservers")){
+                    sc.checkMyServers(in, out);
+                }
+                if(c_input.equals("reserve")){
+                    sc.reserveServer(in, out);
+                }
+                if(c_input.equals("cancel")){
+                    sc.cancelServer(in, out);
+                }
+                if(c_input.equals("auction")){
+                    // Have no idea
+                }
+
+            } while (!c_input.equals("quit"));
 
             s.shutdownInput();
             s.shutdownOutput();

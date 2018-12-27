@@ -1,25 +1,22 @@
 package client;
 
 
+import common.UserServerActions;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Scanner;
 
-public class ClientController{
+public class ClientController implements UserServerActions {
 
-    private String token;
-    private BufferedReader in;
-    private PrintWriter out;
+    private String idUser;
 
     public ClientController(){
-        this.token = "";
+        this.idUser = "";
     }
 
-    public void setToken(String token) {
-        this.token = token;
-    }
-
+    //Fix this
     public void menuScreen(){
         System.out.println("Available commands:");
         System.out.println("> myaccount -details of my account");
@@ -37,13 +34,15 @@ public class ClientController{
         System.out.println("[2] Register");
         Scanner sn = new Scanner(System.in);
         int op = sn.nextInt();
+        int lFlag = 0;
         if(op == 1){
-            login(in, out);
-            System.out.println("> Login Sucessfull!"); //Maybe receive name to display?
-            return 2;
+            lFlag = login(in, out);
+            if(lFlag == 1)
+                return 2;
+            return 1;
         }
         if(op == 2){
-
+            register(in, out);
             System.out.println("> Registration Sucessfull!");
             return 1;
         }
@@ -51,26 +50,31 @@ public class ClientController{
         return 1;
     }
 
-    public void login(BufferedReader in, PrintWriter out){
+    public int login(BufferedReader in, PrintWriter out){
         Scanner sn = new Scanner(System.in);
         System.out.print("Username: ");
         String username = sn.next();
         System.out.print("Password: ");
         String password = sn.next();
-        String req = "login-" + username + "-" + password;
+        String req = "login -" + username + " - " + password;
         out.println(req);
         out.flush();
 
         try {
-            String resp = in.readLine(); //wait for answer
-            if(true) {
-                // Dividir resposta pelos espaços e tratar
+            String[] resp = in.readLine().split("-"); //wait for answer
+            if(resp[0].equals("suc")) {
+                this.idUser = resp[1];
+                System.out.println("> Login Sucessful!");
+                return 1;
             }
-
-
+            else {
+                System.out.println("> Error: " + resp[1]);
+                return 0;
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
+        return 0;
     }
 
     public void register(BufferedReader in, PrintWriter out){
@@ -81,7 +85,7 @@ public class ClientController{
         String email = sn.next();
         System.out.print("Password: ");
         String password = sn.next();
-        String req = "register-" + name + "-" + email + "-" + password;
+        String req = "register - " + name + "-" + email + "-" + password;
 
         out.println(req);
         out.flush();
@@ -135,7 +139,7 @@ public class ClientController{
         }
     }
 
-    public void reserverServer(BufferedReader in, PrintWriter out){
+    public void reserveServer(BufferedReader in, PrintWriter out){
         Scanner sn = new Scanner(System.in);
         String req = "reserve";
 

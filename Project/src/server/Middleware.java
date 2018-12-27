@@ -48,7 +48,7 @@ public class Middleware {
         try {
             user = users.get(email);
             if (user == null || !user.authentication(user.getEmail(), user.getPassword()))
-                throw new WrongPasswordException("Your username or password is incorrect");
+                throw new WrongPasswordException("Your username or password is incorrect.");
         } finally {
             userLock.unlock();
         }
