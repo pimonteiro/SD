@@ -16,7 +16,11 @@ public class Auction {
         this.best = new Bid(null,0);
     }
 
-   synchronized public void bid(User user, float price) throws InsufficientMoneyException {
+    public Container getContainer() {
+        return container;
+    }
+
+    synchronized public void bid(User user, float price) throws InsufficientMoneyException {
         if(best.getPrice() >= price){
             best = new Bid(user,price);
         }

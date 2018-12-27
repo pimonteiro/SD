@@ -2,11 +2,15 @@ package server;
 
 import common.User;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.Date;
+
 public class Container {
     private int id;
     private String type;
     private float price;
-    private float timeAloc;
+    private LocalDateTime startDate;
     private User user; //null if the container is not allocated to any user
 
     public Container() {
@@ -16,7 +20,6 @@ public class Container {
         this.id = id;
         this.price = price;
         this.type = type;
-        this.timeAloc = 0;
         this.user = null;
     }
     public int getId() {
@@ -31,24 +34,23 @@ public class Container {
         return price;
     }
 
-    public float getTimeAloc() {
-        return timeAloc;
-    }
-
     public User getUser() {
         return user;
-    }
-
-    public void setTimeAloc(float timeAloc) {
-        this.timeAloc = timeAloc;
     }
 
     public void setUser(User user) {
         this.user = user;
     }
 
-    public void alocateContainner(User user, float time){
+    public void alocateContainner(User user, LocalDateTime startDate){
         this.user= user;
-        user.setDebt(time*this.price+user.getDebt());
+        this.startDate = startDate;
+    }
+
+    public void freeContainner(){
+        Duration duration = Duration.between(this.startDate, LocalDateTime.now());
+        long diff = Math.abs(duration.toDays());
+        this.user.setDebt(price*diff);
+        this.user=null;
     }
 }

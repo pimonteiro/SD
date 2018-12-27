@@ -2,6 +2,7 @@ package server;
 
 import common.*;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -14,8 +15,9 @@ public class Middleware {
     private Map<Integer,Container> containers;
     private Map<String,User> users;
     private Map<Integer,Auction> auctions;
-    private int na;
+    private List<Integer> idContainner; // containers id of allocated container in auction
     private Map<Integer,Reservation> reservations;
+    private int na;
     private int nr;
     private Lock userLock;
     private Lock auctionLock;
@@ -24,6 +26,8 @@ public class Middleware {
         this.containers = new HashMap<>();
         this.users = new HashMap<>();
         this.auctions = new HashMap<>();
+        this.reservations = new HashMap<>();
+        this.idContainner = new ArrayList<>();
         this.userLock = new ReentrantLock();
         this.auctionLock = new ReentrantLock();
         this.na = 0;
@@ -42,7 +46,7 @@ public class Middleware {
         }
     }
 
-    public User login(String email, String password) throws WrongPasswordException {
+    public String login(String email, String password) throws WrongPasswordException {
         User user;
         userLock.lock();
         try {
@@ -52,7 +56,7 @@ public class Middleware {
         } finally {
             userLock.unlock();
         }
-        return user;
+        return user.getId();
     }
     public int startAuction(Container container, String type) throws ContainerNotAvailableException{
         int id=-1;
@@ -76,21 +80,35 @@ public class Middleware {
         }
         return id;
     }
-    public Bid closeAuction(int id) throws IDNotFoundException{
+    public void closeAuction(int id) throws IDNotFoundException{
         Auction auction;
         auctionLock.lock();
         try {
             if(!auctions.containsKey(id)) throw new IDNotFoundException("The auction id you inserted does not exist");
             auction = auctions.get(id);
             auctions.remove(id);
+            Bid b = auction.closeAuction();
+            this.idContainner.add(auction.getContainer().getId());
+            auction.getContainer().alocateContainner(b.getBuyer(),LocalDateTime.now());
         } finally {
             auctionLock.unlock();
         }
+    }
 
-        return auction.closeAuction();
+    public void closeAuctionReserve(int id) throws IDNotFoundException{
+        userLock.lock();
+        try {
+            if(idContainner.contains(id)){
+                this.containers.get(id).freeContainner();
+                this.idContainner.remove(id);
+            }else throw new IDNotFoundException("The ID you inserted does not exist");
+        }
+        finally {
+            userLock.unlock();
+        }
     }
     
-    public void startReservation(User user, String type, float time) throws ContainerNotAvailableException{
+    public void startReservation(User user, String type) throws ContainerNotAvailableException{
         Container container;
         userLock.lock();
         try {
@@ -99,7 +117,7 @@ public class Middleware {
             for (Container c : containerList) {
                 if (c.getType().equals(type) && c.getUser() == null) {
                     container = c;
-                    container.alocateContainner(user, time);
+                    container.alocateContainner(user, LocalDateTime.now());
                     this.nr++;
                     int id = this.nr;
                     r = new Reservation(id, user, container);
@@ -118,11 +136,32 @@ public class Middleware {
         try {
             if(!reservations.containsKey(id)) throw new IDNotFoundException("The reservation id you inserted does not exist");
             Reservation r = reservations.get(id);
-            r.getContainer().setUser(null);
+            r.getContainer().freeContainner();
             reservations.remove(id);
         }
         finally {
             userLock.unlock();
         }
+    }
+
+    public List<Integer> getUserAllocatedContainers(String id){
+        List<Integer> ret = new ArrayList<>();
+        List<Reservation> r = new ArrayList<>(this.reservations.values());
+        for(Reservation t: r){
+            if(t.getContainer().getUser().getId().equals(id)){
+                ret.add(t.getContainer().getId());
+            }
+        }
+        for(Integer i: this.idContainner){
+            if(containers.get(i).getUser().getId().equals(id)){
+                ret.add(containers.get(i).getId());
+            }
+        }
+        return ret;
+    }
+
+    public String getUserInfo(String id){
+        User u =this.users.get(id);
+        return "ID: "+ u.getId()+"\n"+"Name: "+u.getName()+"\n"+"Debt: "+u.getDebt();
     }
 }
