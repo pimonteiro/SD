@@ -9,11 +9,11 @@ public class Auction {
     private float price;
     private Bid best;
 
-    public Auction(int id, Container container) {
+    public Auction(int id, User user, Container container, float price) {
         this.id = id;
         this.container = container;
-        this.price = 0;
-        this.best = new Bid(null,0);
+        this.price = price;
+        this.best = new Bid(user,price);
     }
 
     public Container getContainer() {

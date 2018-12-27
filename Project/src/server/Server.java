@@ -21,9 +21,9 @@ public class Server {
             c.put(2, new Container(0, "t3.micro", 5));
             c.put(3, new Container(3, "m5.large", 10));
             c.put(4, new Container(4, "m5.large", 10));
-            c.put(5, new Container(5, "h5.normal", 7));
-            c.put(6, new Container(6, "m5.normal", 7));
-            c.put(7, new Container(7, "m5.normal", 7));
+            c.put(5, new Container(5, "h7.normal", 7));
+            c.put(6, new Container(6, "h7.normal", 7));
+            c.put(7, new Container(7, "h7.normal", 7));
             c.put(8, new Container(8, "l2.large", 13));
             c.put(9, new Container(9, "l2.large", 13));
             c.put(10, new Container(10, "p1.mega", 50));

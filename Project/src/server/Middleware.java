@@ -58,7 +58,7 @@ public class Middleware {
         }
         return user.getId();
     }
-    public int startAuction(Container container, String type) throws ContainerNotAvailableException{
+    public int startAuction(User user, String type, float price) throws ContainerNotAvailableException{
         int id=-1;
         auctionLock.lock();
         try {
@@ -66,10 +66,9 @@ public class Middleware {
             List<Container> containerList = new ArrayList<>(containers.values());
             for (Container c : containerList) {
                 if (c.getType().equals(type) && c.getUser() == null) {
-                    container = c;
                     this.na++;
                     id = this.nr;
-                    a = new Auction(id, container);
+                    a = new Auction(na, user, c, price);
                     auctions.put(id, a);
                 }
             }
@@ -108,7 +107,7 @@ public class Middleware {
         }
     }
     
-    public void startReservation(User user, String type) throws ContainerNotAvailableException{
+    public void startReservation(String id, String type) throws ContainerNotAvailableException{
         Container container;
         userLock.lock();
         try {
@@ -117,12 +116,22 @@ public class Middleware {
             for (Container c : containerList) {
                 if (c.getType().equals(type) && c.getUser() == null) {
                     container = c;
-                    container.alocateContainner(user, LocalDateTime.now());
+                    container.alocateContainner(this.users.get(id), LocalDateTime.now());
                     this.nr++;
-                    int id = this.nr;
-                    r = new Reservation(id, user, container);
-                    reservations.put(id, r);
+                    int ids = this.nr;
+                    r = new Reservation(ids, this.users.get(id), container);
+                    reservations.put(ids, r);
+                    break;
                 }
+            }
+            if(r==null) {
+                Container c = containers.get(idContainner.get(0));
+                c.freeContainner();
+                c.alocateContainner(this.users.get(id), LocalDateTime.now());
+                this.nr++;
+                int ids = this.nr;
+                r = new Reservation(ids, this.users.get(id), c);
+                reservations.put(ids, r);
             }
             if(r==null) throw new ContainerNotAvailableException("There are no containers available for reservation");
         }
