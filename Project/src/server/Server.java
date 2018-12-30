@@ -33,6 +33,9 @@ public class Server {
             c.put(14, new Container(14, "f6.min", 4));
             c.put(15, new Container(15, "f6.min", 4));
             Middleware m = new Middleware(c);
+            Timer t = new Timer(m);
+            Thread tr = new Thread(t);
+            tr.start();
             while(true){
                 ServerThreadConnection thc = new ServerThreadConnection(ss.accept(), m);
                 thc.start();

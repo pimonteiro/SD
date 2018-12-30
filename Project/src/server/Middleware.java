@@ -173,4 +173,11 @@ public class Middleware {
         User u =this.users.get(id);
         return "ID: "+ u.getId()+"\n"+"Name: "+u.getName()+"\n"+"Debt: "+u.getDebt();
     }
+    public List<Integer> getIdContainner(){
+        return this.idContainner;
+    }
+
+    public Auction getAuction(int id){
+        return auctions.get(id);
+    }
 }
