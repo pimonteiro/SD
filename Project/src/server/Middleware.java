@@ -3,14 +3,11 @@ package server;
 import common.*;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class Middleware {
+public class Middleware implements CloseableAuction {
     //Logic of Business here
     private Map<Integer,Container> containers;
     private Map<String,User> users;
@@ -179,5 +176,19 @@ public class Middleware {
 
     public Auction getAuction(int id){
         return auctions.get(id);
+    }
+
+    @Override
+    public void closeAuctions() {
+        Collection<Auction> auctions =  this.auctions.values();
+        for(Auction a : auctions){
+            if((System.currentTimeMillis()-a.getStart())>1000){
+                try {
+                    this.closeAuction(a.getId());
+                } catch (IDNotFoundException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 }

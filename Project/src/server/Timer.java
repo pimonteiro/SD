@@ -1,12 +1,11 @@
 package server;
 
 
-import common.IDNotFoundException;
 
 public class Timer implements Runnable{
-    private Middleware m;
+    private CloseableAuction m;
 
-    public Timer(Middleware m){
+    public Timer(CloseableAuction m){
         this.m = m;
     }
 
@@ -14,15 +13,7 @@ public class Timer implements Runnable{
     @Override
     public void run() {
         while (true){
-            for(Integer id : m.getIdContainner()){
-             if(m.getAuction(id).getStart()>=1000){
-                 try {
-                     m.closeAuction(id);
-                 } catch (IDNotFoundException e) {
-                     e.printStackTrace();
-                 }
-             }
+            m.closeAuctions();
          }
-        }
     }
 }

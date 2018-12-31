@@ -39,4 +39,8 @@ public class Auction {
     public Bid closeAuction(){
         return best;
     }
+
+    public int getId() {
+        return id;
+    }
 }
