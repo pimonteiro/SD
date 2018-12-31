@@ -17,88 +17,70 @@ public class ServerThreadController{
         this.m = m;
     }
 
-    public void login(BufferedReader in, PrintWriter out) {
+    public void login(String input, PrintWriter out) {
         try {
-            String req = in.readLine();
-            String tmp[] = req.split("-");
+            String tmp[] = input.split("-");
             String idUser = m.login(tmp[1], tmp[2]);
-            out.println("suc - " + idUser);
+            out.println("suc-" + idUser);
             out.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
         } catch (WrongPasswordException e){
-            out.println("error - " + e.getMessage());
+            out.println("error-" + e.getMessage());
             out.flush();
         }
     }
 
-    public void register(BufferedReader in, PrintWriter out) {
+    public void register(String input, PrintWriter out) {
         try {
-            String req[] = in.readLine().split("-");
-            m.signUp("","","");
-            out.println("suc - ");
+            String req[] = input.split("-");
+            m.signUp(req[1], req[2], req[3]);
+            out.println("suc-");
             out.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
         } catch (UsernameTakenException e){
-            out.println("error - " + e.getMessage());
+            out.println("error-" + e.getMessage());
             out.flush();
         }
     }
 
-    public void checkMyAccount(BufferedReader in, PrintWriter out) {
-        try {
-            String req[] = in.readLine().split("-");
-            String info = m.getUserInfo(req[1]);
-            out.println(info);
-            out.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public void checkMyAccount(String input, PrintWriter out) {
+        String req[] = input.split("-");
+        String info = m.getUserInfo(req[1]);
+        out.println(info);
+        out.flush();
     }
 
-    public void checkMyServers(BufferedReader in, PrintWriter out) {
-        try {
-            String[] req = in.readLine().split("-");
-            List<Container> containers = m.getUserAllocatedContainers(req[1]);
-            StringBuilder resp = new StringBuilder();
-            for(Container c : containers){
-                resp.append("======================\n");
-                resp.append(c.toString());
-                resp.append("======================\n");
-            }
-            out.println(resp.toString()); //Maybe change becuase its gonna screw up the format while printing
-            out.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
+    public void checkMyServers(String input, PrintWriter out) {
+        String[] req = input.split("-");
+        List<Container> containers = m.getUserAllocatedContainers(req[1]);
+        StringBuilder resp = new StringBuilder();
+        for(Container c : containers){
+            resp.append("======================\n");
+            resp.append(c.toString());
+            resp.append("======================\n");
         }
-
+        out.println(resp.toString()); //Maybe change becuase its gonna screw up the format while printing
+        out.flush();
     }
 
-    public void cancelServer(BufferedReader in, PrintWriter out) {
+    public void cancelServer(String input, PrintWriter out) {
         try {
-            String[] req = in.readLine().split("-");
+            String[] req = input.split("-");
             m.closeReservation(Integer.parseInt(req[1]));
-            out.println("suc - ");
+            out.println("suc-");
             out.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
         }catch (IDNotFoundException e){
-            out.println("error - " + e.getMessage());
+            out.println("error-" + e.getMessage());
             out.flush();
         }
     }
 
-    public void reserveServer(BufferedReader in, PrintWriter out) {
+    public void reserveServer(String input, PrintWriter out) {
         try {
-            String[] req = in.readLine().split("-");
+            String[] req = input.split("-");
             m.startReservation(req[1], req[2]);
-            out.println("suc - ");
+            out.println("suc-");
             out.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
         } catch (ContainerNotAvailableException e) {
-            out.println("error - ");
+            out.println("error-");
             out.flush();
         }
     }

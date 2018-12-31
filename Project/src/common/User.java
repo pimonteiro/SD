@@ -46,5 +46,14 @@ public class User {
         return(this.email.equals(email) && this.password.equals(password));
     }
 
-
+    @Override
+    public String toString() {
+        return "User{" +
+                "id='" + id + '\'' +
+                ", name='" + name + '\'' +
+                ", email='" + email + '\'' +
+                ", password='" + password + '\'' +
+                ", debt=" + debt +
+                '}';
+    }
 }

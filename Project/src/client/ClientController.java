@@ -55,11 +55,11 @@ public class ClientController implements UserServerActions {
 
     public int login(BufferedReader in, PrintWriter out){
         Scanner sn = new Scanner(System.in);
-        System.out.print("Username: ");
-        String username = sn.next();
+        System.out.print("Email: ");
+        String email = sn.next();
         System.out.print("Password: ");
         String password = sn.next();
-        String req = "login -" + username + " - " + password;
+        String req = "login-" + email + "-" + password;
         out.println(req);
         out.flush();
 
@@ -88,7 +88,7 @@ public class ClientController implements UserServerActions {
         String email = sn.next();
         System.out.print("Password: ");
         String password = sn.next();
-        String req = "register - " + name + "-" + email + "-" + password;
+        String req = "register-" + name + "-" + email + "-" + password;
 
         out.println(req);
         out.flush();
@@ -112,7 +112,7 @@ public class ClientController implements UserServerActions {
 
     public void checkMyAccount(BufferedReader in, PrintWriter out) {
         Scanner sn = new Scanner(System.in);
-        String req = "myaccount - " + idUser;
+        String req = "myaccount-" + idUser;
         out.println(req);
         out.flush();
 
@@ -138,27 +138,6 @@ public class ClientController implements UserServerActions {
         }
     }
 
-    public void cancelServer(BufferedReader in, PrintWriter out){
-        Scanner sn = new Scanner(System.in);
-        System.out.println("ID Container: ");
-        String idContainer = sn.next();
-        String req = "cancel - " + idContainer;
-        out.println(req);
-        out.flush();
-
-        try {
-            String[] resp = in.readLine().split("-");
-            if(resp[0].equals("suc")){
-                System.out.println("> Reservation canceled with success. Please verify your current debt.");
-            }
-            else {
-                System.out.println("> Error: " + resp[1]);
-            }
-        } catch (IOException e){
-            e.printStackTrace();
-        }
-    }
-
     public void reserveServer(BufferedReader in, PrintWriter out){
         Scanner sn = new Scanner(System.in);
         try {
@@ -180,17 +159,17 @@ public class ClientController implements UserServerActions {
             }
             switch (op){
                 case 1:
-                    out.println("reserve - " + idUser + " T3.micro");
+                    out.println("reserve-" + idUser + "-T3.micro");
                 case 2:
-                    out.println("reserve - " + idUser + " M5.large");
+                    out.println("reserve-" + idUser + "-M5.large");
                 case 3:
-                    out.println("reserve - " + idUser + " H7.normal");
+                    out.println("reserve-" + idUser + "-H7.normal");
                 case 4:
-                    out.println("reserve - " + idUser + " L2.large");
+                    out.println("reserve-" + idUser + "-L2.large");
                 case 5:
-                    out.println("reserve - " + idUser + " P1.mega");
+                    out.println("reserve-" + idUser + "-P1.mega");
                 case 6:
-                    out.println("reserve - " + idUser + " F6.min");
+                    out.println("reserve-" + idUser + "-F6.min");
             }
             out.flush();
 
@@ -205,4 +184,30 @@ public class ClientController implements UserServerActions {
             e.printStackTrace();
         }
     }
+
+    public void cancelServer(BufferedReader in, PrintWriter out){
+        Scanner sn = new Scanner(System.in);
+        System.out.println("ID Container: ");
+        String idContainer = sn.next();
+        String req = "cancel-" + idContainer;
+        out.println(req);
+        out.flush();
+
+        try {
+            String[] resp = in.readLine().split("-");
+            if(resp[0].equals("suc")){
+                System.out.println("> Reservation canceled with success. Please verify your current debt.");
+            }
+            else {
+                System.out.println("> Error: " + resp[1]);
+            }
+        } catch (IOException e){
+            e.printStackTrace();
+        }
+    }
+
+    public void auctionServer(BufferedReader in, PrintWriter out){
+
+    }
+
 }

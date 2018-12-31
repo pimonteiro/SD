@@ -20,32 +20,31 @@ public class ServerThreadConnection extends Thread{
     public void run(){
         try {
             BufferedReader in = new BufferedReader(new InputStreamReader(s.getInputStream()));
-
             PrintWriter out = new PrintWriter(s.getOutputStream());
 
             String c_input;
-            Scanner sn = new Scanner(System.in);
             ServerThreadController sc = new ServerThreadController(m);
 
             do {
-                c_input = sn.nextLine().toLowerCase();
+                c_input = in.readLine().toLowerCase();
+
                 if(c_input.contains("login")){
-                    sc.login(in, out);
+                    sc.login(c_input, out);
                 }
                 if(c_input.contains("register")){
-                    sc.register(in, out);
+                    sc.register(c_input, out);
                 }
-                if(c_input.equals("myaccount")){
-                    sc.checkMyAccount(in, out);
+                if(c_input.contains("myaccount")){
+                    sc.checkMyAccount(c_input, out);
                 }
-                if(c_input.equals("myservers")){
-                    sc.checkMyServers(in, out);
+                if(c_input.contains("myservers")){
+                    sc.checkMyServers(c_input, out);
                 }
                 if(c_input.contains("cancel")){
-                    sc.cancelServer(in, out);
+                    sc.cancelServer(c_input, out);
                 }
                 if(c_input.contains("reserve")){
-                    sc.reserveServer(in, out);
+                    sc.reserveServer(c_input, out);
                 }
 
 
