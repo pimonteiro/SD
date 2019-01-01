@@ -28,4 +28,8 @@ public class Reservation {
     public void setContainer(Container container) {
         this.container = container;
     }
+
+    public int getId() {
+        return id;
+    }
 }

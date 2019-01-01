@@ -140,10 +140,15 @@ public class Middleware {
     public void closeReservation(int id) throws IDNotFoundException {
         userLock.lock();
         try {
-            if(!reservations.containsKey(id)) throw new IDNotFoundException("The reservation id you inserted does not exist");
-            Reservation r = reservations.get(id);
-            r.getContainer().freeContainner();
-            reservations.remove(id);
+            boolean flag = false;
+            for(Reservation r : reservations.values())
+            if(r.getContainer().getId()==id){
+                r.getContainer().freeContainner();
+                reservations.remove(r.getId());
+                flag = true;
+                break;
+            }
+            if(!flag) throw new IDNotFoundException("The containner id you inserted is not allocated to you");
         }
         finally {
             userLock.unlock();
