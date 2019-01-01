@@ -21,7 +21,7 @@ public class ServerThreadController{
         try {
             String tmp[] = input.split("-");
             String idUser = m.login(tmp[1], tmp[2]);
-            out.println("suc-" + idUser);
+            out.println("suc_login-" + idUser);
             out.flush();
         } catch (WrongPasswordException e){
             out.println("error-" + e.getMessage());
@@ -33,7 +33,7 @@ public class ServerThreadController{
         try {
             String req[] = input.split("-");
             m.signUp(req[1], req[2], req[3]);
-            out.println("suc-");
+            out.println("suc_register-");
             out.flush();
         } catch (UsernameTakenException e){
             out.println("error-" + e.getMessage());
@@ -67,7 +67,7 @@ public class ServerThreadController{
         try {
             String[] req = input.split("-");
             m.closeReservation(Integer.parseInt(req[1]));
-            out.println("suc-");
+            out.println("suc_cancel-");
             out.flush();
         }catch (IDNotFoundException e){
             out.println("error-" + e.getMessage());
@@ -79,7 +79,7 @@ public class ServerThreadController{
         try {
             String[] req = input.split("-");
             m.startReservation(req[1], req[2]);
-            out.println("suc-");
+            out.println("suc_reserve-");
             out.flush();
         } catch (ContainerNotAvailableException e) {
             out.println("error-");

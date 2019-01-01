@@ -26,7 +26,7 @@ public class Client {
             Scanner sn = new Scanner(System.in);
             String c_input;
 
-            System.out.println("Welcome back.");
+            System.out.println("\n=======Welcome back.=========\n");
             do{
                 cc.menuScreen();
                 c_input = sn.next().toLowerCase();
@@ -48,7 +48,7 @@ public class Client {
                 }
 
 
-            } while(!c_input.equals("quit")); //quando fizer logout faço: c_input = "quit"; para conseguir sair do ciclo
+            } while(!c_input.equals("quit"));
 
             System.out.println("Have a great day!");
             s.shutdownInput();

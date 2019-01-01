@@ -6,6 +6,7 @@ import common.UserServerActions;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.InputMismatchException;
 import java.util.Scanner;
 
 public class ClientController implements UserServerActions {
@@ -65,7 +66,7 @@ public class ClientController implements UserServerActions {
 
         try {
             String[] resp = in.readLine().split("-"); //wait for answer
-            if(resp[0].equals("suc")) {
+            if(resp[0].contains("suc")) {
                 this.email = resp[1];
                 System.out.println("> Login Sucessful!");
                 return 1;
@@ -95,7 +96,7 @@ public class ClientController implements UserServerActions {
 
         try {
             String[] resp = in.readLine().split("-"); //wait for answer
-            if(resp[0].equals("suc")){
+            if(resp[0].contains("suc")){
                 System.out.println("> Registration Sucessfull!");
                 return 1;
             }
@@ -127,7 +128,6 @@ public class ClientController implements UserServerActions {
     }
 
     public void checkMyServers(BufferedReader in, PrintWriter out){
-        Scanner sn = new Scanner(System.in);
         String req = "myservers-" + email;
         out.println(req);
         out.flush();
@@ -146,8 +146,8 @@ public class ClientController implements UserServerActions {
 
     public void reserveServer(BufferedReader in, PrintWriter out){
         Scanner sn = new Scanner(System.in);
+
         try {
-            String[] resp = in.readLine().split("-");
             System.out.println("> Please choose the type of server:");
             System.out.println("[1] T3.micro  (5eur/dia)");
             System.out.println("[2] M5.large  (10eur/dia)");
@@ -157,30 +157,49 @@ public class ClientController implements UserServerActions {
             System.out.println("[6] F6.min    (4eur/dia)");
 
             System.out.print("Option: ");
-            int op = sn.nextInt();
-            while (op > resp.length){
+            int op;
+            try{
+                op = sn.nextInt();
+            }
+            catch (InputMismatchException e){
+                op = 0;
+                System.out.println("> Please input a number.");
+            }
+            while (op > 6 || op < 1){
                 System.out.println("> Wrong option. Try again");
                 System.out.print("Option: ");
-                op = sn.nextInt();
+                try{
+                    op = sn.nextInt();
+                }
+                catch (InputMismatchException e){
+                    op = 0;
+                    System.out.println("> Please input a number.");
+                }
             }
             switch (op){
                 case 1:
                     out.println("reserve-" + email + "-T3.micro");
+                    break;
                 case 2:
                     out.println("reserve-" + email + "-M5.large");
+                    break;
                 case 3:
                     out.println("reserve-" + email + "-H7.normal");
+                    break;
                 case 4:
                     out.println("reserve-" + email + "-L2.large");
+                    break;
                 case 5:
                     out.println("reserve-" + email + "-P1.mega");
+                    break;
                 case 6:
                     out.println("reserve-" + email + "-F6.min");
+                    break;
             }
             out.flush();
 
-            resp = in.readLine().split("-");
-            if(resp[0].equals("suc")){
+            String[] resp = in.readLine().split("-");
+            if(resp[0].contains("suc")){
                 System.out.println("> Reservation successful!");
             }
             else{
@@ -201,7 +220,7 @@ public class ClientController implements UserServerActions {
 
         try {
             String[] resp = in.readLine().split("-");
-            if(resp[0].equals("suc")){
+            if(resp[0].contains("suc")){
                 System.out.println("> Reservation canceled with success. Please verify your current debt.");
             }
             else {

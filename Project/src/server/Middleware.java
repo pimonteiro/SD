@@ -136,6 +136,7 @@ public class Middleware {
         }
     }
 
+    //TODO falta o ID da pessoa a que pertence, senao qualquer um pode fechar um container de outro
     public void closeReservation(int id) throws IDNotFoundException {
         userLock.lock();
         try {
