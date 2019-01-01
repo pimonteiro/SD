@@ -10,10 +10,10 @@ import java.util.Scanner;
 
 public class ClientController implements UserServerActions {
 
-    private String idUser;
+    private String email;
 
     public ClientController(){
-        this.idUser = "";
+        this.email = "";
     }
 
     //Fix this
@@ -66,7 +66,7 @@ public class ClientController implements UserServerActions {
         try {
             String[] resp = in.readLine().split("-"); //wait for answer
             if(resp[0].equals("suc")) {
-                this.idUser = resp[1];
+                this.email = resp[1];
                 System.out.println("> Login Sucessful!");
                 return 1;
             }
@@ -111,14 +111,16 @@ public class ClientController implements UserServerActions {
     }
 
     public void checkMyAccount(BufferedReader in, PrintWriter out) {
-        Scanner sn = new Scanner(System.in);
-        String req = "myaccount-" + idUser;
+        String req = "myaccount-" + email;
         out.println(req);
         out.flush();
 
         try{
-            String resp = in.readLine(); //wait for answer
-            System.out.println(resp);
+            int n = Integer.parseInt(in.readLine());
+            char[] resp = new char[n];
+            int r = in.read(resp,0,n);
+            String s = new String(resp);
+            System.out.println("\n" + s + "\n");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -126,13 +128,17 @@ public class ClientController implements UserServerActions {
 
     public void checkMyServers(BufferedReader in, PrintWriter out){
         Scanner sn = new Scanner(System.in);
-        String req = "myservers";
+        String req = "myservers-" + email;
         out.println(req);
         out.flush();
 
         try {
-            String resp = in.readLine();
-            System.out.println(resp);
+            int n = Integer.parseInt(in.readLine());
+            char[] resp = new char[n];
+            int r = in.read(resp,0,n);
+
+            String s = new String(resp);
+            System.out.println(s + "\n");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -159,17 +165,17 @@ public class ClientController implements UserServerActions {
             }
             switch (op){
                 case 1:
-                    out.println("reserve-" + idUser + "-T3.micro");
+                    out.println("reserve-" + email + "-T3.micro");
                 case 2:
-                    out.println("reserve-" + idUser + "-M5.large");
+                    out.println("reserve-" + email + "-M5.large");
                 case 3:
-                    out.println("reserve-" + idUser + "-H7.normal");
+                    out.println("reserve-" + email + "-H7.normal");
                 case 4:
-                    out.println("reserve-" + idUser + "-L2.large");
+                    out.println("reserve-" + email + "-L2.large");
                 case 5:
-                    out.println("reserve-" + idUser + "-P1.mega");
+                    out.println("reserve-" + email + "-P1.mega");
                 case 6:
-                    out.println("reserve-" + idUser + "-F6.min");
+                    out.println("reserve-" + email + "-F6.min");
             }
             out.flush();
 

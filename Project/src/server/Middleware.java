@@ -35,15 +35,11 @@ public class Middleware {
     }
 
     public void signUp(String username, String email, String password) throws UsernameTakenException {
+        if (users.containsKey(username))
+            throw new UsernameTakenException("The username that you have chosen is taken");
         userLock.lock();
-        try {
-            if (users.containsKey(username))
-                throw new UsernameTakenException("The username that you have chosen is taken");
-
-            users.put(username, new User(users.size(), username, email, password));
-        } finally {
-            userLock.unlock();
-        }
+        users.put(email, new User(users.size(), username, email, password));
+        userLock.unlock();
     }
 
     public String login(String email, String password) throws WrongPasswordException {
@@ -56,7 +52,7 @@ public class Middleware {
         } finally {
             userLock.unlock();
         }
-        return user.getId();
+        return email;
     }
     public int startAuction(User user, String type, float price) throws ContainerNotAvailableException{
         int id=-1;
@@ -153,7 +149,9 @@ public class Middleware {
         }
     }
 
-    public List<Container> getUserAllocatedContainers(String id){
+    public List<Container> getUserAllocatedContainers(String email){
+        User u = users.get(email);
+        String id = u.getId();
         List<Container> ret = new ArrayList<>();
         List<Reservation> r = new ArrayList<>(this.reservations.values());
         for(Reservation t: r){
@@ -169,8 +167,8 @@ public class Middleware {
         return ret;
     }
 
-    public String getUserInfo(String id){
-        User u =this.users.get(id);
-        return "ID: "+ u.getId()+"\n"+"Name: "+u.getName()+"\n"+"Debt: "+u.getDebt();
+    public String getUserInfo(String email){
+        User u =this.users.get(email);
+        return "ID: "+ u.getId()+"\n"+"Name: "+u.getName()+"\n"+"Email: "+u.getEmail()+"\n"+"Debt: "+u.getDebt();
     }
 }

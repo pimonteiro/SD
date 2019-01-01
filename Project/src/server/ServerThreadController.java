@@ -44,7 +44,8 @@ public class ServerThreadController{
     public void checkMyAccount(String input, PrintWriter out) {
         String req[] = input.split("-");
         String info = m.getUserInfo(req[1]);
-        out.println(info);
+        out.println(info.length());
+        out.print(info);
         out.flush();
     }
 
@@ -57,7 +58,8 @@ public class ServerThreadController{
             resp.append(c.toString());
             resp.append("======================\n");
         }
-        out.println(resp.toString()); //Maybe change becuase its gonna screw up the format while printing
+        out.println(resp.length());
+        out.print(resp.toString()); //Maybe change becuase its gonna screw up the format while printing
         out.flush();
     }
 
