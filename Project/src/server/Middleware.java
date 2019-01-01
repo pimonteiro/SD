@@ -54,23 +54,19 @@ public class Middleware implements CloseableAuction {
     public int startAuction(String email, String type, float price) throws ContainerNotAvailableException{
         User user = users.get(email);
         int id=-1;
-        auctionLock.lock();
-        try {
-            Auction a=null;
-            List<Container> containerList = new ArrayList<>(containers.values());
-            for (Container c : containerList) {
-                if (c.getType().equals(type) && c.getUser() == null) {
-                    this.na++;
-                    id = this.nr;
-                    a = new Auction(na, user, c, price);
-                    auctions.put(id, a);
-                }
+        Auction a=null;
+        List<Container> containerList = new ArrayList<>(containers.values());
+        for (Container c : containerList) {
+            if (c.getType().equals(type) && c.getUser() == null) {
+                this.na++;
+                id = this.nr;
+                a = new Auction(na, user, c, price);
+                auctionLock.lock();
+                auctions.put(id, a);
+                auctionLock.unlock();
             }
-            if(a==null) throw new ContainerNotAvailableException("There are no containers available for auction");
         }
-        finally {
-            auctionLock.unlock();
-        }
+        if(a==null) throw new ContainerNotAvailableException("There are no containers available for auction");
         return id;
     }
     public void closeAuction(int id) throws IDNotFoundException{
@@ -115,11 +111,19 @@ public class Middleware implements CloseableAuction {
                     int ids = this.nr;
                     r = new Reservation(ids, this.users.get(id), container);
                     reservations.put(ids, r);
-                    break;
+                    return;
                 }
             }
-            if(r==null) { //Nao entendo esta parte do codigo
-                Container c = containers.get(idContainner.get(0));
+            if(r==null) {
+                int i;
+                try {
+                    i = idContainner.get(0); //TODO voltar a ver, porque nao é justo tirar ao que ta mais tempo?
+                }
+                catch (IndexOutOfBoundsException e){
+                    throw new ContainerNotAvailableException("There are no containers available for reservation");
+                }
+
+                Container c = containers.get(i);
                 c.freeContainner();
                 c.alocateContainner(this.users.get(id), LocalDateTime.now());
                 this.nr++;
@@ -127,26 +131,26 @@ public class Middleware implements CloseableAuction {
                 r = new Reservation(ids, this.users.get(id), c);
                 reservations.put(ids, r);
             }
-            if(r==null) throw new ContainerNotAvailableException("There are no containers available for reservation");
         }
         finally {
             userLock.unlock();
         }
     }
 
-    //TODO falta o ID da pessoa a que pertence, senao qualquer um pode fechar um container de outro
-    public void closeReservation(int id) throws IDNotFoundException {
+    public void closeReservation(String email, int id) throws IDNotFoundException {
         userLock.lock();
         try {
             boolean flag = false;
-            for(Reservation r : reservations.values())
-            if(r.getContainer().getId()==id){
-                r.getContainer().freeContainner();
-                reservations.remove(r.getId());
-                flag = true;
-                break;
+            for(Reservation r : reservations.values()) {
+                Container c = r.getContainer();
+                if (c.getId() == id && c.getUser().getEmail().equals(email)) {
+                    c.freeContainner();
+                    reservations.remove(r.getId());
+                    flag = true;
+                    break;
+                }
             }
-            if(!flag) throw new IDNotFoundException("The containner id you inserted is not allocated to you");
+            if(!flag) throw new IDNotFoundException("The container id you inserted is not allocated to you");
         }
         finally {
             userLock.unlock();
@@ -187,7 +191,7 @@ public class Middleware implements CloseableAuction {
     public void closeAuctions() {
         Collection<Auction> auctions =  this.auctions.values();
         for(Auction a : auctions){
-            if((System.currentTimeMillis()-a.getStart())>1000){
+            if((System.currentTimeMillis()-a.getStart())>1000){ //TODO deviamos por mais tempo
                 try {
                     this.closeAuction(a.getId());
                 } catch (IDNotFoundException e) {

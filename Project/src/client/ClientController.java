@@ -214,7 +214,7 @@ public class ClientController implements UserServerActions {
         Scanner sn = new Scanner(System.in);
         System.out.println("ID Container: ");
         String idContainer = sn.next();
-        String req = "cancel-" + idContainer;
+        String req = "cancel-" + email + "-" + idContainer;
         out.println(req);
         out.flush();
 
@@ -231,7 +231,7 @@ public class ClientController implements UserServerActions {
         }
     }
 
-    public void auctionServer(BufferedReader in, PrintWriter out){
+    public void auctionServer(BufferedReader in, PrintWriter out) {
         Scanner sn = new Scanner(System.in);
         try {
             System.out.println("> Please choose the type of server:");
@@ -244,20 +244,18 @@ public class ClientController implements UserServerActions {
 
             System.out.print("Option: ");
             int op;
-            try{
+            try {
                 op = sn.nextInt();
-            }
-            catch (InputMismatchException e){
+            } catch (InputMismatchException e) {
                 op = 0;
                 System.out.println("> Please input a number.");
             }
-            while (op > 6 || op < 1){
+            while (op > 6 || op < 1) {
                 System.out.println("> Wrong option. Try again");
                 System.out.print("Option: ");
-                try{
+                try {
                     op = sn.nextInt();
-                }
-                catch (InputMismatchException e){
+                } catch (InputMismatchException e) {
                     op = 0;
                     System.out.println("> Please input a number.");
                 }
@@ -268,21 +266,20 @@ public class ClientController implements UserServerActions {
                 System.out.print("Amount to spend: ");
                 try {
                     money = sn.nextInt();
-                }
-                catch (InputMismatchException e){
+                } catch (InputMismatchException e) {
                     money = -1;
                 }
-                if(money < 0){
+                if (money < 0) {
                     System.out.println("> Invalid amount. Please insert a valid amount.");
                 }
 
-            } while(money < 0);
+            } while (money < 0);
 
             StringBuilder req = new StringBuilder();
             req.append("reserve-");
             req.append(email);
 
-            switch (op){
+            switch (op) {
                 case 1:
                     req.append("-T3.micro-");
                     break;
@@ -308,9 +305,11 @@ public class ClientController implements UserServerActions {
 
             //tratar resposta
 
+            String[] resp = in.readLine().split("-");
 
-    } catch (IOException e){
-        e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 }

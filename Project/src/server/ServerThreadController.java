@@ -66,7 +66,7 @@ public class ServerThreadController{
     public void cancelServer(String input, PrintWriter out) {
         try {
             String[] req = input.split("-");
-            m.closeReservation(Integer.parseInt(req[1]));
+            m.closeReservation(req[1],Integer.parseInt(req[2]));
             out.println("suc_cancel-");
             out.flush();
         }catch (IDNotFoundException e){

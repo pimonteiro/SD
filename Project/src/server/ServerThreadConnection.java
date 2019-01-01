@@ -26,7 +26,11 @@ public class ServerThreadConnection extends Thread{
             ServerThreadController sc = new ServerThreadController(m);
 
             do {
-                c_input = in.readLine().toLowerCase();
+                try {
+                    c_input = in.readLine().toLowerCase();
+                } catch (NullPointerException e){
+                    c_input = "quit";
+                }
 
                 if(c_input.contains("login")){
                     sc.login(c_input, out);
