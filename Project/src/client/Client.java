@@ -44,11 +44,13 @@ public class Client {
                     cc.cancelServer(in, out);
                 }
                 if(c_input.equals("auction")){
-                    // Have no idea
+                    cc.auctionServer(in,out);
                 }
 
 
             } while(!c_input.equals("quit"));
+            out.println("quit");
+            out.flush();
 
             System.out.println("Have a great day!");
             s.shutdownInput();

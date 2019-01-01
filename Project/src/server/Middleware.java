@@ -54,7 +54,8 @@ public class Middleware {
         }
         return email;
     }
-    public int startAuction(User user, String type, float price) throws ContainerNotAvailableException{
+    public int startAuction(String email, String type, float price) throws ContainerNotAvailableException{
+        User user = users.get(email);
         int id=-1;
         auctionLock.lock();
         try {
@@ -120,7 +121,7 @@ public class Middleware {
                     break;
                 }
             }
-            if(r==null) {
+            if(r==null) { //Nao entendo esta parte do codigo
                 Container c = containers.get(idContainner.get(0));
                 c.freeContainner();
                 c.alocateContainner(this.users.get(id), LocalDateTime.now());

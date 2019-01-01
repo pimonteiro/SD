@@ -232,7 +232,85 @@ public class ClientController implements UserServerActions {
     }
 
     public void auctionServer(BufferedReader in, PrintWriter out){
+        Scanner sn = new Scanner(System.in);
+        try {
+            System.out.println("> Please choose the type of server:");
+            System.out.println("[1] T3.micro  (5eur/dia)");
+            System.out.println("[2] M5.large  (10eur/dia)");
+            System.out.println("[3] H7.normal (7eur/dia)");
+            System.out.println("[4] L2.large  (13eur/dia)");
+            System.out.println("[5] P1.mega   (50eur/dia)");
+            System.out.println("[6] F6.min    (4eur/dia)");
 
+            System.out.print("Option: ");
+            int op;
+            try{
+                op = sn.nextInt();
+            }
+            catch (InputMismatchException e){
+                op = 0;
+                System.out.println("> Please input a number.");
+            }
+            while (op > 6 || op < 1){
+                System.out.println("> Wrong option. Try again");
+                System.out.print("Option: ");
+                try{
+                    op = sn.nextInt();
+                }
+                catch (InputMismatchException e){
+                    op = 0;
+                    System.out.println("> Please input a number.");
+                }
+            }
+
+            int money;
+            do {
+                System.out.print("Amount to spend: ");
+                try {
+                    money = sn.nextInt();
+                }
+                catch (InputMismatchException e){
+                    money = -1;
+                }
+                if(money < 0){
+                    System.out.println("> Invalid amount. Please insert a valid amount.");
+                }
+
+            } while(money < 0);
+
+            StringBuilder req = new StringBuilder();
+            req.append("reserve-");
+            req.append(email);
+
+            switch (op){
+                case 1:
+                    req.append("-T3.micro-");
+                    break;
+                case 2:
+                    req.append("-M5.large-");
+                    break;
+                case 3:
+                    req.append("-H7.normal-");
+                    break;
+                case 4:
+                    req.append("-L2.large-");
+                    break;
+                case 5:
+                    req.append("-P1.mega-");
+                    break;
+                case 6:
+                    req.append("-F6.min-");
+                    break;
+            }
+            req.append(money);
+            out.println(req);
+            out.flush();
+
+            //tratar resposta
+
+
+    } catch (IOException e){
+        e.printStackTrace();
     }
 
 }

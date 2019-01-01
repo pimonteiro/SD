@@ -86,4 +86,16 @@ public class ServerThreadController{
             out.flush();
         }
     }
+
+    public void auctionServer(String input, PrintWriter out) {
+        try {
+            String[] req = input.split("-");
+            m.startAuction(req[1],req[2],Float.parseFloat(req[3]));
+
+
+        } catch (ContainerNotAvailableException e) {
+            out.println("error-");
+            out.flush();
+        }
+    }
 }
