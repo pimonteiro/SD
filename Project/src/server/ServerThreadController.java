@@ -66,7 +66,7 @@ public class ServerThreadController{
     public void cancelServer(String input, PrintWriter out) {
         try {
             String[] req = input.split("-");
-            m.closeReservation(Integer.parseInt(req[1]));
+            m.closeReservation(req[1],Integer.parseInt(req[2]));
             out.println("suc_cancel-");
             out.flush();
         }catch (IDNotFoundException e){
@@ -81,6 +81,18 @@ public class ServerThreadController{
             m.startReservation(req[1], req[2]);
             out.println("suc_reserve-");
             out.flush();
+        } catch (ContainerNotAvailableException e) {
+            out.println("error-");
+            out.flush();
+        }
+    }
+
+    public void auctionServer(String input, PrintWriter out) {
+        try {
+            String[] req = input.split("-");
+            m.startAuction(req[1],req[2],Float.parseFloat(req[3]));
+
+
         } catch (ContainerNotAvailableException e) {
             out.println("error-");
             out.flush();

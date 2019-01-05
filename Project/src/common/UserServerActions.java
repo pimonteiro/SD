@@ -10,5 +10,6 @@ public interface UserServerActions {
     void checkMyServers(BufferedReader in, PrintWriter out);
     void cancelServer(BufferedReader in, PrintWriter out);
     void reserveServer(BufferedReader in, PrintWriter out);
+    void auctionServer(BufferedReader in, PrintWriter out);
 
 }

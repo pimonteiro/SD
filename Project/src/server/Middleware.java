@@ -3,14 +3,11 @@ package server;
 import common.*;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class Middleware {
+public class Middleware implements CloseableAuction {
     //Logic of Business here
     private Map<Integer,Container> containers;
     private Map<String,User> users;
@@ -55,29 +52,30 @@ public class Middleware {
         }
         return email;
     }
-    public int startAuction(User user, String type, float price) throws ContainerNotAvailableException{
-        int id=-1;
+    public int startAuction(String email, String type, float price) throws ContainerNotAvailableException{
         auctionLock.lock();
+        int id = -1;
         try {
-            Auction a=null;
+            User user = users.get(email);
+            Auction a = null;
             List<Container> containerList = new ArrayList<>(containers.values());
             for (Container c : containerList) {
                 if (c.getType().equals(type) && c.getUser() == null) {
                     this.na++;
-                    id = this.nr;
+                    id = this.na;
                     a = new Auction(na, user, c, price);
                     auctions.put(id, a);
                 }
-            }
-            if(a==null) {
-                if(queue.containsKey(type)) {
-                    queue.get(type).add(new Pair(user, price));
-                } else{
-                    List<Pair> u = new ArrayList<>();
-                    u.add(new Pair(user,price));
-                    queue.put(type,u);
+                if (a == null) {
+                    if (queue.containsKey(type)) {
+                        queue.get(type).add(new Pair(user, price));
+                    } else {
+                        List<Pair> u = new ArrayList<>();
+                        u.add(new Pair(user, price));
+                        queue.put(type, u);
+                    }
+                    throw new ContainerNotAvailableException("There are no containers available for auction, you are queued");
                 }
-                throw new ContainerNotAvailableException("There are no containers available for auction, you are queued");
             }
         }
         finally {
@@ -113,7 +111,7 @@ public class Middleware {
                             best = p;
                         }
                     }
-                    this.startAuction(best.getC(), containers.get(id).getType(), best.getPrice());
+                    this.startAuction(best.getC().getEmail(), containers.get(id).getType(), best.getPrice());
                 }
             }else throw new IDNotFoundException("The ID you inserted does not exist");
         } catch (ContainerNotAvailableException e) {
@@ -137,11 +135,19 @@ public class Middleware {
                     int ids = this.nr;
                     r = new Reservation(ids, this.users.get(id), container);
                     reservations.put(ids, r);
-                    break;
+                    return;
                 }
             }
             if(r==null) {
-                Container c = containers.get(idContainner.get(0));
+                int i;
+                try {
+                    i = idContainner.get(0); //TODO voltar a ver, porque nao é justo tirar ao que ta mais tempo?
+                }
+                catch (IndexOutOfBoundsException e){
+                    throw new ContainerNotAvailableException("There are no containers available for reservation");
+                }
+
+                Container c = containers.get(i);
                 c.freeContainner();
                 c.alocateContainner(this.users.get(id), LocalDateTime.now());
                 this.nr++;
@@ -149,26 +155,26 @@ public class Middleware {
                 r = new Reservation(ids, this.users.get(id), c);
                 reservations.put(ids, r);
             }
-            if(r==null) throw new ContainerNotAvailableException("There are no containers available for reservation");
         }
         finally {
             userLock.unlock();
         }
     }
 
-    //TODO falta o ID da pessoa a que pertence, senao qualquer um pode fechar um container de outro
-    public void closeReservation(int id) throws IDNotFoundException {
+    public void closeReservation(String email, int id) throws IDNotFoundException {
         userLock.lock();
         try {
             boolean flag = false;
-            for(Reservation r : reservations.values())
-            if(r.getContainer().getId()==id){
-                r.getContainer().freeContainner();
-                reservations.remove(r.getId());
-                flag = true;
-                break;
+            for(Reservation r : reservations.values()) {
+                Container c = r.getContainer();
+                if (c.getId() == id && c.getUser().getEmail().equals(email)) {
+                    c.freeContainner();
+                    reservations.remove(r.getId());
+                    flag = true;
+                    break;
+                }
             }
-            if(!flag) throw new IDNotFoundException("The containner id you inserted is not allocated to you");
+            if(!flag) throw new IDNotFoundException("The container id you inserted is not allocated to you");
         }
         finally {
             userLock.unlock();
@@ -196,5 +202,26 @@ public class Middleware {
     public String getUserInfo(String email){
         User u =this.users.get(email);
         return "ID: "+ u.getId()+"\n"+"Name: "+u.getName()+"\n"+"Email: "+u.getEmail()+"\n"+"Debt: "+u.getDebt();
+    }
+    public List<Integer> getIdContainner(){
+        return this.idContainner;
+    }
+
+    public Auction getAuction(int id){
+        return auctions.get(id);
+    }
+
+    @Override
+    public void closeAuctions() {
+        Collection<Auction> auctions =  this.auctions.values();
+        for(Auction a : auctions){
+            if((System.currentTimeMillis()-a.getStart())>1000){ //TODO deviamos por mais tempo
+                try {
+                    this.closeAuction(a.getId());
+                } catch (IDNotFoundException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 }

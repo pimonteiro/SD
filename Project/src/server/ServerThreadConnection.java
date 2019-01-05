@@ -26,7 +26,11 @@ public class ServerThreadConnection extends Thread{
             ServerThreadController sc = new ServerThreadController(m);
 
             do {
-                c_input = in.readLine().toLowerCase();
+                try {
+                    c_input = in.readLine().toLowerCase();
+                } catch (NullPointerException e){
+                    c_input = "quit";
+                }
 
                 if(c_input.contains("login")){
                     sc.login(c_input, out);
@@ -46,11 +50,8 @@ public class ServerThreadConnection extends Thread{
                 if(c_input.contains("reserve")){
                     sc.reserveServer(c_input, out);
                 }
-
-
-
-                if(c_input.equals("auction")){
-                    // Have no idea
+                if(c_input.contains("auction")){
+                    sc.auctionServer(c_input, out);
                 }
 
             } while (!c_input.equals("quit"));
