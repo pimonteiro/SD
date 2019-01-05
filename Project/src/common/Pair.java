@@ -3,25 +3,21 @@ package common;
 import server.Container;
 
 public class Pair {
-   private Container c;
-   private int id; //-1 when not alocated <0 when atributed to certain user
+   private User c;
+   private float price;
 
     public Pair() {
     }
-    public Pair(Container c, int id) {
+    public Pair(User c, float i) {
         this.c = c;
-        this.id = id;
+        this.price = i;
     }
 
-    public Container getC() {
+    public User getC() {
         return c;
     }
 
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
+    public float getPrice() {
+        return price;
     }
 }

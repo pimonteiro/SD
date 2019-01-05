@@ -17,6 +17,7 @@ public class Middleware {
     private Map<Integer,Auction> auctions;
     private List<Integer> idContainner; // containers id of allocated container in auction
     private Map<Integer,Reservation> reservations;
+    private Map<String,List<Pair>> queue;
     private int na;
     private int nr;
     private Lock userLock;
@@ -68,7 +69,16 @@ public class Middleware {
                     auctions.put(id, a);
                 }
             }
-            if(a==null) throw new ContainerNotAvailableException("There are no containers available for auction");
+            if(a==null) {
+                if(queue.containsKey(type)) {
+                    queue.get(type).add(new Pair(user, price));
+                } else{
+                    List<Pair> u = new ArrayList<>();
+                    u.add(new Pair(user,price));
+                    queue.put(type,u);
+                }
+                throw new ContainerNotAvailableException("There are no containers available for auction, you are queued");
+            }
         }
         finally {
             auctionLock.unlock();
@@ -96,9 +106,19 @@ public class Middleware {
             if(idContainner.contains(id)){
                 this.containers.get(id).freeContainner();
                 this.idContainner.remove(id);
+                if(queue.containsKey(containers.get(id).getType())){
+                    Pair best = null;
+                    for(Pair p : queue.get(containers.get(id).getType())){
+                        if(best==null || p.getPrice()>best.getPrice()){
+                            best = p;
+                        }
+                    }
+                    this.startAuction(best.getC(), containers.get(id).getType(), best.getPrice());
+                }
             }else throw new IDNotFoundException("The ID you inserted does not exist");
-        }
-        finally {
+        } catch (ContainerNotAvailableException e) {
+            e.printStackTrace();
+        } finally {
             userLock.unlock();
         }
     }
