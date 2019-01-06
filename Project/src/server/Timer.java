@@ -14,6 +14,11 @@ public class Timer implements Runnable{
     public void run() {
         while (true){
             m.closeAuctions();
-         }
+            try {
+                Thread.sleep(10000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }

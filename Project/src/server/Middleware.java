@@ -28,6 +28,7 @@ public class Middleware implements CloseableAuction {
         this.idContainner = new ArrayList<>();
         this.userLock = new ReentrantLock();
         this.auctionLock = new ReentrantLock();
+        this.queue = new HashMap<>();
         this.na = 0;
         this.nr = 0;
     }
@@ -53,7 +54,7 @@ public class Middleware implements CloseableAuction {
         return email;
     }
     public int startAuction(String email, String type, float price) throws ContainerNotAvailableException{
-        auctionLock.lock();
+
         int id = -1;
         try {
             User user = users.get(email);
@@ -64,11 +65,12 @@ public class Middleware implements CloseableAuction {
                     this.na++;
                     id = this.na;
                     a = new Auction(na, user, c, price);
+                    auctionLock.lock();
                     auctions.put(id, a);
-                }
-                if (a == null) {
-                    if (queue.containsKey(type)) {
-                        queue.get(type).add(new Pair(user, price));
+                    idContainner.add(c.getId());
+                }else {
+                    if (this.queue.containsKey(type)) {
+                        this.queue.get(type).add(new Pair(user, price));
                     } else {
                         List<Pair> u = new ArrayList<>();
                         u.add(new Pair(user, price));
@@ -104,18 +106,8 @@ public class Middleware implements CloseableAuction {
             if(idContainner.contains(id)){
                 this.containers.get(id).freeContainner();
                 this.idContainner.remove(id);
-                if(queue.containsKey(containers.get(id).getType())){
-                    Pair best = null;
-                    for(Pair p : queue.get(containers.get(id).getType())){
-                        if(best==null || p.getPrice()>best.getPrice()){
-                            best = p;
-                        }
-                    }
-                    this.startAuction(best.getC().getEmail(), containers.get(id).getType(), best.getPrice());
-                }
+
             }else throw new IDNotFoundException("The ID you inserted does not exist");
-        } catch (ContainerNotAvailableException e) {
-            e.printStackTrace();
         } finally {
             userLock.unlock();
         }
@@ -132,28 +124,29 @@ public class Middleware implements CloseableAuction {
                     container = c;
                     container.alocateContainner(this.users.get(id), LocalDateTime.now());
                     this.nr++;
-                    int ids = this.nr;
-                    r = new Reservation(ids, this.users.get(id), container);
-                    reservations.put(ids, r);
+                    r = new Reservation(this.nr, this.users.get(id), container);
+                    reservations.put(this.nr, r);
                     return;
                 }
             }
-            if(r==null) {
+            if(r==null) { // nao havia containners nao alocados
+                System.out.println("ola");
                 int i;
                 try {
                     i = idContainner.get(0); //TODO voltar a ver, porque nao é justo tirar ao que ta mais tempo?
+                    Container c = containers.get(i);
+                    idContainner.remove(0);
+                    this.closeAuctionReserve(c.getId());
+                    c.alocateContainner(this.users.get(id), LocalDateTime.now());
+                    this.nr++;
+                    r = new Reservation(this.nr, this.users.get(id), c);
+                    reservations.put(this.nr, r);
                 }
-                catch (IndexOutOfBoundsException e){
+                catch (IndexOutOfBoundsException | IDNotFoundException e){
                     throw new ContainerNotAvailableException("There are no containers available for reservation");
                 }
 
-                Container c = containers.get(i);
-                c.freeContainner();
-                c.alocateContainner(this.users.get(id), LocalDateTime.now());
-                this.nr++;
-                int ids = this.nr;
-                r = new Reservation(ids, this.users.get(id), c);
-                reservations.put(ids, r);
+
             }
         }
         finally {
@@ -170,13 +163,23 @@ public class Middleware implements CloseableAuction {
                 if (c.getId() == id && c.getUser().getEmail().equals(email)) {
                     c.freeContainner();
                     reservations.remove(r.getId());
+                    if(queue.containsKey(containers.get(id).getType()) && queue.get(containers.get(id)).get(0)!=null){ // ir buscar leiloes a queue
+                        Pair best = null;
+                        for(Pair p : queue.get(containers.get(id).getType())){
+                            if(best==null || p.getPrice()>best.getPrice()){
+                                best = p;
+                            }
+                        }
+                        this.startAuction(best.getC().getEmail(), containers.get(id).getType(), best.getPrice());
+                    }
                     flag = true;
                     break;
                 }
             }
             if(!flag) throw new IDNotFoundException("The container id you inserted is not allocated to you");
-        }
-        finally {
+        } catch (ContainerNotAvailableException e) {
+            e.printStackTrace();
+        } finally {
             userLock.unlock();
         }
     }
@@ -215,7 +218,7 @@ public class Middleware implements CloseableAuction {
     public void closeAuctions() {
         Collection<Auction> auctions =  this.auctions.values();
         for(Auction a : auctions){
-            if((System.currentTimeMillis()-a.getStart())>1000){ //TODO deviamos por mais tempo
+            if((System.currentTimeMillis()-a.getStart())>10000){ //TODO deviamos por mais tempo
                 try {
                     this.closeAuction(a.getId());
                 } catch (IDNotFoundException e) {
