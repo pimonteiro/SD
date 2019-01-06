@@ -1,6 +1,7 @@
 package common;
 
 public class User {
+    public static User actioning = new User(-4, "", "", "");
     private final String id;
     private String name;
     private String email;

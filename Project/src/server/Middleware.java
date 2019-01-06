@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class Middleware implements CloseableAuction {
     //Logic of Business here
@@ -17,8 +18,8 @@ public class Middleware implements CloseableAuction {
     private Map<String, List<Pair>> queue;
     private int na;
     private int nr;
-    private Lock userLock;
-    private Lock auctionLock;
+    private ReentrantReadWriteLock userLock;
+    private ReentrantReadWriteLock auctionLock;
 
     public Middleware(Map<Integer, Container> c) {
         this.containers = c;
@@ -26,37 +27,40 @@ public class Middleware implements CloseableAuction {
         this.auctions = new HashMap<>();
         this.reservations = new HashMap<>();
         this.idContainner = new ArrayList<>();
-        this.userLock = new ReentrantLock();
-        this.auctionLock = new ReentrantLock();
+        this.userLock = new ReentrantReadWriteLock();
+        this.auctionLock = new ReentrantReadWriteLock();
         this.queue = new HashMap<>();
         this.na = 0;
         this.nr = 0;
     }
 
     public void signUp(String username, String email, String password) throws UsernameTakenException {
-        if (users.containsKey(username))
+        userLock.writeLock().lock();
+        if (users.containsKey(username)) {
             throw new UsernameTakenException("The username that you have chosen is taken");
-        userLock.lock();
+        }
         users.put(email, new User(users.size(), username, email, password));
-        userLock.unlock();
+        userLock.writeLock().unlock();
     }
 
     public String login(String email, String password) throws WrongPasswordException {
         User user;
-        userLock.lock();
+        userLock.readLock().lock();
         try {
             user = users.get(email);
             if (user == null || !user.authentication(email, password))
                 throw new WrongPasswordException("Your username or password is incorrect.");
         } finally {
-            userLock.unlock();
+            userLock.readLock().unlock();
         }
         return email;
     }
 
     public int startAuction(String email, String type, float price) throws ContainerNotAvailableException, InsufficientMoneyException{
         int id = -1;
-        auctionLock.lock();
+        System.out.println(email); //TODO
+        auctionLock.writeLock().lock();
+        System.out.println(email);
         try {
             User user = users.get(email);
             Auction a = null;
@@ -72,6 +76,7 @@ public class Middleware implements CloseableAuction {
                     this.na++;
                     id = this.na;
                     a = new Auction(na, user, c, price);
+                    c.setUser(User.actioning);
                     auctions.put(id, a);
                     idContainner.add(c.getId());
                     break;
@@ -88,14 +93,14 @@ public class Middleware implements CloseableAuction {
                 throw new ContainerNotAvailableException("There are no containers available for auction, you are queued");
             }
         } finally {
-            auctionLock.unlock();
+            auctionLock.writeLock().unlock();
         }
         return id;
     }
 
     public void closeAuction(int id) throws IDNotFoundException {
         Auction auction;
-        auctionLock.lock();
+        auctionLock.writeLock().lock();
         try {
             if (!auctions.containsKey(id)) throw new IDNotFoundException("The auction id you inserted does not exist");
             auction = auctions.get(id);
@@ -109,27 +114,14 @@ public class Middleware implements CloseableAuction {
             Reservation r = new Reservation(this.nr, b.getBuyer(), auction.getContainer());
             reservations.put(this.nr, r);
         } finally {
-            auctionLock.unlock();
-        }
-    }
-
-    public void closeAuctionReserve(int id) throws IDNotFoundException {
-        userLock.lock();
-        try {
-            if (idContainner.contains(id)) {
-                this.containers.get(id).freeContainner();
-                this.idContainner.remove(id);
-
-            } else throw new IDNotFoundException("The ID you inserted does not exist");
-        } finally {
-            userLock.unlock();
+            auctionLock.writeLock().unlock();
         }
     }
 
     public void startReservation(String id, String type) throws ContainerNotAvailableException {
         Container container;
-        System.out.println("começou reserva");
-        userLock.lock();
+        System.out.println("começou reserva " + id);
+        userLock.writeLock().lock();
         try {
             Reservation r = null;
             System.out.println("lock");
@@ -141,6 +133,7 @@ public class Middleware implements CloseableAuction {
                     container.alocateContainner(this.users.get(id), LocalDateTime.now());
                     this.nr++;
                     r = new Reservation(this.nr, this.users.get(id), container);
+                    System.out.println("New reservation " + r.getUser());
                     reservations.put(this.nr, r);
                     System.out.println("reservou");
                     return;
@@ -150,25 +143,24 @@ public class Middleware implements CloseableAuction {
             int i;
             try {
                 System.out.println("estou a tentar roubar");
-                i = idContainner.get(0);
+                i = idContainner.remove(0); //TODO voltar a ver, porque nao é justo tirar ao que ta mais tempo?
                 Container c = containers.get(i);
-                idContainner.remove(0);
-                this.closeAuctionReserve(c.getId());
                 c.alocateContainner(this.users.get(id), LocalDateTime.now());
                 this.nr++;
                 r = new Reservation(this.nr, this.users.get(id), c);
                 reservations.put(this.nr, r);
                 System.out.println("roubei");
-            } catch (IndexOutOfBoundsException | IDNotFoundException e) {
+            } catch (IndexOutOfBoundsException e) {
+                e.printStackTrace();
                 throw new ContainerNotAvailableException("There are no containers available for reservation");
             }
         } finally {
-            userLock.unlock();
+            userLock.writeLock().unlock();
         }
     }
 
     public void closeReservation(String email, int id) throws IDNotFoundException, InsufficientMoneyException {
-        userLock.lock();
+        userLock.writeLock().lock();
         try {
             boolean flag = false;
             for (Reservation r : reservations.values()) {
@@ -193,11 +185,12 @@ public class Middleware implements CloseableAuction {
         } catch (ContainerNotAvailableException e) {
             e.printStackTrace();
         } finally {
-            userLock.unlock();
+            userLock.writeLock().unlock();
         }
     }
 
     public List<Container> getUserAllocatedContainers(String email) {
+        userLock.readLock().lock();
         User u = users.get(email);
         String id = u.getId();
         List<Container> ret = new ArrayList<>();
@@ -207,16 +200,14 @@ public class Middleware implements CloseableAuction {
                 ret.add(t.getContainer());
             }
         }
-        //for (Integer i : this.idContainner) {
-        //    if (containers.get(i).getUser().getId().equals(id)) {
-        //        ret.add(containers.get(i));
-        //    }
-        //}
+        userLock.readLock().unlock();
         return ret;
     }
 
     public String getUserInfo(String email) {
+        userLock.readLock().lock();
         User u = this.users.get(email);
+        userLock.readLock().unlock();
         return "ID: " + u.getId() + "\n" + "Name: " + u.getName() + "\n" + "Email: " + u.getEmail() + "\n" + "Debt: " + u.getDebt();
     }
 
@@ -232,11 +223,17 @@ public class Middleware implements CloseableAuction {
    public void closeAuctions() {
         Collection<Auction> auctions = this.auctions.values();
         long sleep = 0;
+        if(auctions.isEmpty()) {
+            try {
+                Thread.sleep(10000);
+            } catch (InterruptedException ignored) {
+            }
+        }
             long currentTimeMillis = System.currentTimeMillis();
             for (Auction a : auctions) {
+                if ((currentTimeMillis - a.getStart()) > 10000) { //TODO deviamos por mais tempo
                 System.out.println(currentTimeMillis + " " + a.getStart());
-                if ((currentTimeMillis - a.getStart()) > 100000) { // 1 minuto e meio
-                    try {
+                try {
                         this.closeAuction(a.getId());
                     } catch (IDNotFoundException e) {
                         e.printStackTrace();

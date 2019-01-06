@@ -19,9 +19,9 @@ public class Server {
         try {
             ServerSocket ss = new ServerSocket(1234);
             Map<Integer,Container> c = new HashMap<>();
-            c.put(0,new Container(1, "t3.micro", 5));
-            c.put(1, new Container(2, "t3.micro", 5));
-            c.put(2, new Container(0, "t3.micro", 5));
+            c.put(0,new Container(0, "t3.micro", 5));
+            c.put(1, new Container(1, "t3.micro", 5));
+            c.put(2, new Container(2, "t3.micro", 5));
             c.put(3, new Container(3, "m5.large", 10));
             c.put(4, new Container(4, "m5.large", 10));
             c.put(5, new Container(5, "h7.normal", 7));
