@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -39,13 +40,10 @@ public class Server {
             Timer t = new Timer(m);
             Thread tr = new Thread(t);
             tr.start();
-            ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newCachedThreadPool();
-            executor.setKeepAliveTime(2, TimeUnit.HOURS); //A verificar e talvez testar outros valores para ver improvments
-
+            ExecutorService executor = Executors.newCachedThreadPool();
             while(true){
                 ServerThreadConnection thc = new ServerThreadConnection(ss.accept(), m);
                 executor.submit(thc);
-                //thc.start();
             }
         }
         catch(IOException e) {
