@@ -306,6 +306,12 @@ public class ClientController implements UserServerActions {
             //tratar resposta
 
             String[] resp = in.readLine().split("-");
+            if(resp[0].contains("suc")){
+                System.out.println("> Server acquired!");
+            }
+            else{
+                System.out.println("Ups, something went bad."); //TODO redo error message
+            }
 
         } catch (IOException e) {
             e.printStackTrace();

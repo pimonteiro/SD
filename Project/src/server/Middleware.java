@@ -56,7 +56,7 @@ public class Middleware implements CloseableAuction {
 
     public int startAuction(String email, String type, float price) throws ContainerNotAvailableException {
         int id = -1;
-        System.out.println(email);
+        System.out.println(email); //TODO
         auctionLock.lock();
         System.out.println(email);
         try {
@@ -70,6 +70,12 @@ public class Middleware implements CloseableAuction {
                     a = new Auction(na, user, c, price);
                     auctions.put(id, a);
                     idContainner.add(c.getId());
+                    try{
+                        closeAuction(id);
+                    }
+                    catch (IDNotFoundException e){
+                        e.printStackTrace();
+                    }
                     break;
                 }
             }
@@ -97,8 +103,12 @@ public class Middleware implements CloseableAuction {
             auction = auctions.get(id);
             auctions.remove(id);
             Bid b = auction.closeAuction();
-            this.idContainner.add(auction.getContainer().getId());
-            auction.getContainer().alocateContainner(b.getBuyer(), LocalDateTime.now());
+            //this.idContainner.remove(auction.getContainer().getId()); //TODO nao sei
+            //this.idContainner.add(auction.getContainer().getId());
+            this.nr++;
+            Reservation r = new Reservation(this.nr, b.getBuyer(), auction.getContainer());
+            reservations.put(this.nr, r);
+            //auction.getContainer().alocateContainner(b.getBuyer(), LocalDateTime.now());
         } finally {
             auctionLock.unlock();
         }
@@ -198,11 +208,11 @@ public class Middleware implements CloseableAuction {
                 ret.add(t.getContainer());
             }
         }
-        for (Integer i : this.idContainner) {
-            if (containers.get(i).getUser().getId().equals(id)) {
-                ret.add(containers.get(i));
-            }
-        }
+        //for (Integer i : this.idContainner) {
+        //    if (containers.get(i).getUser().getId().equals(id)) {
+        //        ret.add(containers.get(i));
+        //    }
+        //}
         return ret;
     }
 

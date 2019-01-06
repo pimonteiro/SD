@@ -52,6 +52,7 @@ public class ServerThreadController{
     public void checkMyServers(String input, PrintWriter out) {
         String[] req = input.split("-");
         List<Container> containers = m.getUserAllocatedContainers(req[1]);
+        System.out.println("Checkando");
         StringBuilder resp = new StringBuilder();
         for(Container c : containers){
             resp.append("======================\n");
