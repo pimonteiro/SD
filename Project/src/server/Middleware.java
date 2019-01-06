@@ -54,15 +54,19 @@ public class Middleware implements CloseableAuction {
         return email;
     }
 
-    public int startAuction(String email, String type, float price) throws ContainerNotAvailableException {
+    public int startAuction(String email, String type, float price) throws ContainerNotAvailableException, InsufficientMoneyException{
         int id = -1;
-        System.out.println(email); //TODO
         auctionLock.lock();
-        System.out.println(email);
         try {
             User user = users.get(email);
             Auction a = null;
             List<Container> containerList = new ArrayList<>(containers.values());
+            for(Auction t : this.auctions.values()){
+                if(t.getContainer().getType().equals(type)){
+                    t.bid(user, price);
+                    break;
+                }
+            }
             for (Container c : containerList) {
                 if (c.getType().equals(type) && c.getUser() == null) {
                     this.na++;
@@ -146,7 +150,7 @@ public class Middleware implements CloseableAuction {
             int i;
             try {
                 System.out.println("estou a tentar roubar");
-                i = idContainner.get(0); //TODO voltar a ver, porque nao é justo tirar ao que ta mais tempo?
+                i = idContainner.get(0);
                 Container c = containers.get(i);
                 idContainner.remove(0);
                 this.closeAuctionReserve(c.getId());
@@ -163,7 +167,7 @@ public class Middleware implements CloseableAuction {
         }
     }
 
-    public void closeReservation(String email, int id) throws IDNotFoundException {
+    public void closeReservation(String email, int id) throws IDNotFoundException, InsufficientMoneyException {
         userLock.lock();
         try {
             boolean flag = false;
@@ -231,7 +235,7 @@ public class Middleware implements CloseableAuction {
             long currentTimeMillis = System.currentTimeMillis();
             for (Auction a : auctions) {
                 System.out.println(currentTimeMillis + " " + a.getStart());
-                if ((currentTimeMillis - a.getStart()) > 10000) { //TODO deviamos por mais tempo
+                if ((currentTimeMillis - a.getStart()) > 100000) { // 1 minuto e meio
                     try {
                         this.closeAuction(a.getId());
                     } catch (IDNotFoundException e) {
@@ -247,7 +251,5 @@ public class Middleware implements CloseableAuction {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-
     }
-
 }

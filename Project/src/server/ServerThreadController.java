@@ -1,9 +1,6 @@
 package server;
 
-import common.ContainerNotAvailableException;
-import common.IDNotFoundException;
-import common.UsernameTakenException;
-import common.WrongPasswordException;
+import common.*;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -70,7 +67,7 @@ public class ServerThreadController{
             m.closeReservation(req[1],Integer.parseInt(req[2]));
             out.println("suc_cancel-");
             out.flush();
-        }catch (IDNotFoundException e){
+        }catch (IDNotFoundException|InsufficientMoneyException e){
             out.println("error-" + e.getMessage());
             out.flush();
         }
@@ -95,8 +92,8 @@ public class ServerThreadController{
             out.println("suc_auction-");
             out.flush();
 
-        } catch (ContainerNotAvailableException e) {
-            out.println("error-");
+        } catch (ContainerNotAvailableException|InsufficientMoneyException e) {
+            out.println("error-" + e.getMessage());
             out.flush();
         }
     }
