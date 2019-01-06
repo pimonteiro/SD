@@ -70,12 +70,6 @@ public class Middleware implements CloseableAuction {
                     a = new Auction(na, user, c, price);
                     auctions.put(id, a);
                     idContainner.add(c.getId());
-                    try{
-                        closeAuction(id);
-                    }
-                    catch (IDNotFoundException e){
-                        e.printStackTrace();
-                    }
                     break;
                 }
             }
@@ -231,20 +225,20 @@ public class Middleware implements CloseableAuction {
     }
 
     @Override
-    public void closeAuctions() {
+   public void closeAuctions() {
         Collection<Auction> auctions = this.auctions.values();
         long sleep = 0;
-        if (!auctions.isEmpty()) {
+            long currentTimeMillis = System.currentTimeMillis();
             for (Auction a : auctions) {
-                System.out.println(System.currentTimeMillis() + " " + a.getStart());
-                if ((System.currentTimeMillis() - a.getStart()) > 10000) { //TODO deviamos por mais tempo
+                System.out.println(currentTimeMillis + " " + a.getStart());
+                if ((currentTimeMillis - a.getStart()) > 10000) { //TODO deviamos por mais tempo
                     try {
                         this.closeAuction(a.getId());
                     } catch (IDNotFoundException e) {
                         e.printStackTrace();
                     }
-                    if (sleep < System.currentTimeMillis() - a.getStart()) {
-                        sleep = System.currentTimeMillis() - a.getStart();
+                    if (sleep < currentTimeMillis - a.getStart()) {
+                        sleep = currentTimeMillis - a.getStart();
                     }
                 }
             }
@@ -253,6 +247,7 @@ public class Middleware implements CloseableAuction {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-        }
+
     }
+
 }
