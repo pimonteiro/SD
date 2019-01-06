@@ -105,7 +105,11 @@ public class Middleware implements CloseableAuction {
             Bid b = auction.closeAuction();
             //this.idContainner.remove(auction.getContainer().getId()); //TODO nao sei
             //this.idContainner.add(auction.getContainer().getId());
+            this.nr++;
             auction.getContainer().alocateContainner(b.getBuyer(), LocalDateTime.now());
+            Reservation r = new Reservation(this.nr, b.getBuyer(), auction.getContainer());
+            reservations.put(this.nr, r);
+            //auction.getContainer().alocateContainner(b.getBuyer(), LocalDateTime.now());
         } finally {
             auctionLock.unlock();
         }
