@@ -17,7 +17,7 @@ public class Auction {
         this.price = price;
         this.best = new Bid(user,price);
         this.start = System.currentTimeMillis();
-        this.bids = 1; //TODO tem de 1 certo? Se alguem cria, passa a ter pelo menos uma Bid
+        this.bids = 1;
     }
 
     public Container getContainer() {

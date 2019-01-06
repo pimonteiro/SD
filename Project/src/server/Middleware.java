@@ -58,9 +58,7 @@ public class Middleware implements CloseableAuction {
 
     public int startAuction(String email, String type, float price) throws ContainerNotAvailableException, InsufficientMoneyException {
         int id = -1;
-        System.out.println(email); //TODO
         auctionLock.writeLock().lock();
-        System.out.println(email);
         try {
             User user = users.get(email);
             Auction a = null;
@@ -106,8 +104,7 @@ public class Middleware implements CloseableAuction {
             auction = auctions.get(id);
             auctions.remove(id);
             Bid b = auction.closeAuction();
-            //this.idContainner.remove(auction.getContainer().getId()); //TODO nao sei
-            //this.idContainner.add(auction.getContainer().getId());
+
             this.nr++;
             auction.getContainer().alocateContainner(b.getBuyer(), LocalDateTime.now());
             auction.getContainer().setAuction_price(b.getPrice());
@@ -120,37 +117,29 @@ public class Middleware implements CloseableAuction {
 
     public void startReservation(String id, String type) throws ContainerNotAvailableException {
         Container container;
-        System.out.println("começou reserva " + id);
         userLock.writeLock().lock();
         try {
             Reservation r = null;
-            System.out.println("lock");
             List<Container> containerList = new ArrayList<>(containers.values());
             for (Container c : containerList) {
-                System.out.println("estou no for");
                 if (c.getType().equals(type) && c.getUser() == null) {
                     container = c;
                     container.alocateContainner(this.users.get(id), LocalDateTime.now());
                     this.nr++;
                     r = new Reservation(this.nr, this.users.get(id), container);
-                    System.out.println("New reservation " + r.getUser());
                     reservations.put(this.nr, r);
-                    System.out.println("reservou");
                     return;
                 }
             }
-            System.out.println("nao reservou");
             int i;
             if (idContainner.isEmpty())
                 throw new ContainerNotAvailableException("There are no containers available for reservation");
-            System.out.println("estou a tentar roubar");
-            i = idContainner.remove(0); //TODO voltar a ver, porque nao é justo tirar ao que ta mais tempo?
+            i = idContainner.remove(0);
             Container c = containers.get(i);
             c.alocateContainner(this.users.get(id), LocalDateTime.now());
             this.nr++;
             r = new Reservation(this.nr, this.users.get(id), c);
             reservations.put(this.nr, r);
-            System.out.println("roubei");
         } finally {
             userLock.writeLock().unlock();
         }
@@ -227,8 +216,7 @@ public class Middleware implements CloseableAuction {
         }
         long currentTimeMillis = System.currentTimeMillis();
         for (Auction a : auctions) {
-            if ((currentTimeMillis - a.getStart()) > 10000) { //TODO deviamos por mais tempo
-                System.out.println(currentTimeMillis + " " + a.getStart());
+            if ((currentTimeMillis - a.getStart()) > 10000) {
                 try {
                     this.closeAuction(a.getId());
                 } catch (IDNotFoundException e) {
