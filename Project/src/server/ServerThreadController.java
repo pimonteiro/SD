@@ -91,7 +91,8 @@ public class ServerThreadController{
         try {
             String[] req = input.split("-");
             m.startAuction(req[1],req[2],Float.parseFloat(req[3]));
-
+            out.println("suc_auction-");
+            out.flush();
 
         } catch (ContainerNotAvailableException e) {
             out.println("error-");

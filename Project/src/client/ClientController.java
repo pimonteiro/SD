@@ -276,7 +276,7 @@ public class ClientController implements UserServerActions {
             } while (money < 0);
 
             StringBuilder req = new StringBuilder();
-            req.append("reserve-");
+            req.append("auction-");
             req.append(email);
 
             switch (op) {
