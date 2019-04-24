@@ -56,17 +56,15 @@ public class Middleware implements CloseableAuction {
         return email;
     }
 
-    public int startAuction(String email, String type, float price) throws ContainerNotAvailableException, InsufficientMoneyException{
+    public int startAuction(String email, String type, float price) throws ContainerNotAvailableException, InsufficientMoneyException {
         int id = -1;
-        System.out.println(email); //TODO
         auctionLock.writeLock().lock();
-        System.out.println(email);
         try {
             User user = users.get(email);
             Auction a = null;
             List<Container> containerList = new ArrayList<>(containers.values());
-            for(Auction t : this.auctions.values()){
-                if(t.getContainer().getType().equals(type)){
+            for (Auction t : this.auctions.values()) {
+                if (t.getContainer().getType().equals(type)) {
                     t.bid(user, price);
                     break;
                 }
@@ -106,8 +104,7 @@ public class Middleware implements CloseableAuction {
             auction = auctions.get(id);
             auctions.remove(id);
             Bid b = auction.closeAuction();
-            //this.idContainner.remove(auction.getContainer().getId()); //TODO nao sei
-            //this.idContainner.add(auction.getContainer().getId());
+
             this.nr++;
             auction.getContainer().alocateContainner(b.getBuyer(), LocalDateTime.now());
             auction.getContainer().setAuction_price(b.getPrice());
@@ -120,40 +117,29 @@ public class Middleware implements CloseableAuction {
 
     public void startReservation(String id, String type) throws ContainerNotAvailableException {
         Container container;
-        System.out.println("começou reserva " + id);
         userLock.writeLock().lock();
         try {
             Reservation r = null;
-            System.out.println("lock");
             List<Container> containerList = new ArrayList<>(containers.values());
             for (Container c : containerList) {
-                System.out.println("estou no for");
                 if (c.getType().equals(type) && c.getUser() == null) {
                     container = c;
                     container.alocateContainner(this.users.get(id), LocalDateTime.now());
                     this.nr++;
                     r = new Reservation(this.nr, this.users.get(id), container);
-                    System.out.println("New reservation " + r.getUser());
                     reservations.put(this.nr, r);
-                    System.out.println("reservou");
                     return;
                 }
             }
-            System.out.println("nao reservou");
             int i;
-            try {
-                System.out.println("estou a tentar roubar");
-                i = idContainner.remove(0); //TODO voltar a ver, porque nao é justo tirar ao que ta mais tempo?
-                Container c = containers.get(i);
-                c.alocateContainner(this.users.get(id), LocalDateTime.now());
-                this.nr++;
-                r = new Reservation(this.nr, this.users.get(id), c);
-                reservations.put(this.nr, r);
-                System.out.println("roubei");
-            } catch (IndexOutOfBoundsException e) {
-                e.printStackTrace();
+            if (idContainner.isEmpty())
                 throw new ContainerNotAvailableException("There are no containers available for reservation");
-            }
+            i = idContainner.remove(0);
+            Container c = containers.get(i);
+            c.alocateContainner(this.users.get(id), LocalDateTime.now());
+            this.nr++;
+            r = new Reservation(this.nr, this.users.get(id), c);
+            reservations.put(this.nr, r);
         } finally {
             userLock.writeLock().unlock();
         }
@@ -194,10 +180,9 @@ public class Middleware implements CloseableAuction {
         User u = users.get(email);
         String id = u.getId();
         List<Container> ret = new ArrayList<>();
-        List<Reservation> r = new ArrayList<>(this.reservations.values());
-        for (Reservation t : r) {
-            if (t.getContainer().getUser().getId().equals(id)) {
-                ret.add(t.getContainer());
+        for (Container c : this.containers.values()) {
+            if (c.getUser() != null && c.getUser().getId().equals(id)) {
+                ret.add(c);
             }
         }
         userLock.readLock().unlock();
@@ -220,33 +205,32 @@ public class Middleware implements CloseableAuction {
     }
 
     @Override
-   public void closeAuctions() {
+    public void closeAuctions() {
         Collection<Auction> auctions = this.auctions.values();
         long sleep = 0;
-        if(auctions.isEmpty()) {
+        if (auctions.isEmpty()) {
             try {
                 Thread.sleep(10000);
             } catch (InterruptedException ignored) {
             }
         }
-            long currentTimeMillis = System.currentTimeMillis();
-            for (Auction a : auctions) {
-                if ((currentTimeMillis - a.getStart()) > 10000) { //TODO deviamos por mais tempo
-                System.out.println(currentTimeMillis + " " + a.getStart());
+        long currentTimeMillis = System.currentTimeMillis();
+        for (Auction a : auctions) {
+            if ((currentTimeMillis - a.getStart()) > 10000) {
                 try {
-                        this.closeAuction(a.getId());
-                    } catch (IDNotFoundException e) {
-                        e.printStackTrace();
-                    }
-                    if (sleep < currentTimeMillis - a.getStart()) {
-                        sleep = currentTimeMillis - a.getStart();
-                    }
+                    this.closeAuction(a.getId());
+                } catch (IDNotFoundException e) {
+                    e.printStackTrace();
+                }
+                if (sleep < currentTimeMillis - a.getStart()) {
+                    sleep = currentTimeMillis - a.getStart();
                 }
             }
-            try {
-                Thread.sleep(sleep);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+        }
+        try {
+            Thread.sleep(sleep);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 }

@@ -310,7 +310,7 @@ public class ClientController implements UserServerActions {
                 System.out.println(">Server being fetched. Check back in later to see if you got lucky!");
             }
             else{
-                System.out.println("Ups, something went bad."); //TODO redo error message
+                System.out.println("Ups, something went bad.");
             }
 
         } catch (IOException e) {
