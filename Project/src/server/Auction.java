@@ -32,6 +32,7 @@ public class Auction {
         if(best.getPrice() >= price){
             best = new Bid(user,price);
             bids++;
+            start = System.currentTimeMillis();
         }
         else throw  new InsufficientMoneyException("Your bid is too low");
     }
